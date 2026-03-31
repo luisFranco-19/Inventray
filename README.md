@@ -33,13 +33,13 @@
    git clone https://github.com/tu-usuario/MBPos.git
   
 2. Instalar dependencias:
-bash
-npm install
+   ```bash
+   npm install
 3. Configurar variables de entorno (.env) con tus credenciales de Supabase.
 4. Iniciar el proyecto:
-bash
-npx expo start
+   ```bash
+   npx expo start
 📸 Vista Previa
 (Aquí puedes añadir capturas de pantalla de tu dashboard y el POS)
 
-Desarrollado cpara mejorar la productividad de los emprendedores.
+Desarrollado para mejorar la productividad de los emprendedores.
