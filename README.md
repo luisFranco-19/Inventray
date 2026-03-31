@@ -1,5 +1,3 @@
-# Inventray
- Un sistema POS móvil de alto rendimiento diseñado para PyMEs. Gestión de inventario, ventas en tiempo real, control de deudas y reportería avanzada con una interfaz minimalista y moderna.
 
 # 🚀 Inventra | Mobile POS & Business Manager
 
@@ -33,3 +31,15 @@
 1. Clonar el repositorio:
    ```bash
    git clone https://github.com/tu-usuario/MBPos.git
+  
+2. Instalar dependencias:
+bash
+npm install
+3. Configurar variables de entorno (.env) con tus credenciales de Supabase.
+4. Iniciar el proyecto:
+bash
+npx expo start
+📸 Vista Previa
+(Aquí puedes añadir capturas de pantalla de tu dashboard y el POS)
+
+Desarrollado cpara mejorar la productividad de los emprendedores.
