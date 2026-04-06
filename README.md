@@ -1,6 +1,6 @@
-# 🚀 Inventra | Mobile POS & Business Manager
+# 🚀 Inventray | Mobile POS & Business Manager
 
-**Inventra** es un sistema de Punto de Venta (POS) inteligente y minimalista diseñado para transformar la gestión de pequeños y medianos negocios. Enfocado en la velocidad, el diseño visual premium y la precisión de los datos.
+**Inventray** es un sistema de Punto de Venta (POS) inteligente y minimalista diseñado para transformar la gestión de pequeños y medianos negocios. Enfocado en la velocidad, el diseño visual premium y la precisión de los datos.
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![React Native](https://img.shields.io/badge/React_Native-0.83-61DAFB?logo=react)
