@@ -3,6 +3,7 @@ import {
   View, Text, StyleSheet, Modal, TouchableOpacity, 
   ScrollView, Dimensions, Platform 
 } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../context/ThemeContext';
 import { sizes } from '../theme';
@@ -39,14 +40,14 @@ export function GuiaAyuda({ visible, onClose, titulo, pasos, tips, color }: Guia
             style={st.header}
           >
             <View style={st.headerInfo}>
-               <Text style={st.headerIcon}>💡</Text>
+               <MaterialCommunityIcons name="lightbulb-on" size={32} color="#fff" style={{ marginRight: 8 }} />
                <View style={{ flex: 1, paddingRight: 8 }}>
                  <Text style={st.headerSub}>GUÍA RÁPIDA</Text>
                  <Text style={st.headerTitulo} numberOfLines={2} adjustsFontSizeToFit>{titulo}</Text>
                </View>
             </View>
             <TouchableOpacity onPress={onClose} style={st.btnClose}>
-              <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700' }}>✕</Text>
+              <MaterialCommunityIcons name="close" size={20} color="#fff" />
             </TouchableOpacity>
           </LinearGradient>
 
@@ -67,7 +68,10 @@ export function GuiaAyuda({ visible, onClose, titulo, pasos, tips, color }: Guia
 
             {/* Tips Pro */}
             <View style={[st.tipCard, { backgroundColor: isDark ? c.surfaceAlt : accentColor + '08', borderColor: accentColor + '30' }]}>
-              <Text style={[st.tipTitle, { color: accentColor }]}>✨ Tip Pro</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8, gap: 6 }}>
+                <MaterialCommunityIcons name="star-face" size={18} color={accentColor} />
+                <Text style={[st.tipTitle, { color: accentColor, marginBottom: 0 }]}>Tip Pro</Text>
+              </View>
               {tips.map((tip, i) => (
                 <View key={i} style={st.tipRow}>
                   <Text style={st.tipBullet}>•</Text>

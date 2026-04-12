@@ -4,6 +4,7 @@ import {
   TouchableOpacity, Dimensions, StatusBar, Modal, Animated as RNAnimated,
   Easing
 } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Swipeable } from 'react-native-gesture-handler';
 import { router, useFocusEffect } from 'expo-router';
@@ -19,6 +20,7 @@ import { obtenerVariantes } from '../../../database/variantesDB';
 import { useTheme } from '../../context/ThemeContext';
 import { useBusiness, METODOS_PAGO_OPCIONES } from '../../context/BusinessContext';
 import { sizes } from '../../theme';
+import { useResponsive } from '../../hooks/useResponsive';
 
 const PremiumSpinner = ({ isDark }: { isDark: boolean }) => {
   const rotation = useRef(new RNAnimated.Value(0)).current;
@@ -48,7 +50,6 @@ const PremiumSpinner = ({ isDark }: { isDark: boolean }) => {
     </View>
   );
 };
-import { useResponsive } from '../../hooks/useResponsive';
 
 const { width } = Dimensions.get('window');
 
@@ -98,93 +99,78 @@ export default function Dashboard() {
   // Derivamos solo lo que se debe mostrar en pantalla basado en el filtro
   const alertas = todasAlertas.filter(a => !alertasIgnoradas.includes(a.id));
 
+  const loadData = useCallback(async () => {
+    if (!tenantId || isLoading) return;
+    setIsSyncing(true);
+    try {
+      const vHoy = await obtenerVentasHoy();
+      const pTop = await obtenerProductosTop();
+      const methods = await obtenerVentasPorMetodo();
+      const mPeriodo = await obtenerVentasPorPeriodo(periodo);
+      const vars = await obtenerVariantes();
+
+      setVentasHoy(vHoy);
+      setProductosTop(pTop);
+      setPorMetodo(methods);
+      setMetricas(mPeriodo);
+      setTotalStock(vars.reduce((s, v) => s + (v.stock || 0), 0));
+
+      // Generación de alertas
+      const agotados = vars.filter(x => x.stock === 0);
+      const bajos = vars.filter(x => x.stock > 0 && x.stock <= x.stockMinimo);
+      const nuevasAlertas = [];
+
+      let umbralBajo = 500;
+      let pLabel = 'hoy';
+      if (periodo === 'semana') { umbralBajo = 3000; pLabel = 'en la semana'; }
+      if (periodo === 'mes') { umbralBajo = 12000; pLabel = 'en el mes'; }
+
+      if (agotados.length > 0) {
+        nuevasAlertas.push({ id: 'agotados', tipo: 'Inventario', mensaje: `Hay ${agotados.length} productos agotados.`, color: c.danger, ruta: '/stock' });
+      }
+      if (bajos.length > 0) {
+        nuevasAlertas.push({ id: 'bajos', tipo: 'Sugerencia', mensaje: `Existen ${bajos.length} productos con stock bajo.`, color: c.warning, ruta: '/stock' });
+      }
+      if (mPeriodo.total < umbralBajo) {
+        nuevasAlertas.push({ id: `ventas_${periodo}`, tipo: 'Desempeño', mensaje: `Balance de $${mPeriodo.total.toFixed(2)} detectado ${pLabel}.`, color: c.info, ruta: '/pos' });
+      }
+      setTodasAlertas(nuevasAlertas);
+    } catch (err) {
+      console.log('[Dashboard] Error loading data:', err);
+    } finally {
+      setIsSyncing(false);
+    }
+  }, [tenantId, isLoading, periodo, c]);
+
+  useFocusEffect(useCallback(() => {
+    loadData();
+  }, [loadData]));
+
   useEffect(() => {
     if (!tenantId || isLoading) return;
 
-    const load = async () => {
-      setIsSyncing(true);
-      try {
-        const vHoy = await obtenerVentasHoy();
-        const pTop = await obtenerProductosTop();
-        const methods = await obtenerVentasPorMetodo();
-        const mPeriodo = await obtenerVentasPorPeriodo(periodo);
-        const vars = await obtenerVariantes();
-
-        setVentasHoy(vHoy);
-        setProductosTop(pTop);
-        setPorMetodo(methods);
-        setMetricas(mPeriodo);
-        setTotalStock(vars.reduce((s, v) => s + (v.stock || 0), 0));
-
-        // Generación de alertas
-        const agotados = vars.filter(x => x.stock === 0);
-        const bajos = vars.filter(x => x.stock > 0 && x.stock <= x.stockMinimo);
-        const nuevasAlertas = [];
-
-        let umbralBajo = 500;
-        let pLabel = 'hoy';
-        if (periodo === 'semana') { umbralBajo = 3000; pLabel = 'en la semana'; }
-        if (periodo === 'mes') { umbralBajo = 12000; pLabel = 'en el mes'; }
-
-        if (agotados.length > 0) {
-          nuevasAlertas.push({ id: 'agotados', tipo: 'Inventario', mensaje: `Hay ${agotados.length} productos agotados.`, color: c.danger, ruta: '/stock' });
-        }
-        if (bajos.length > 0) {
-          nuevasAlertas.push({ id: 'bajos', tipo: 'Sugerencia', mensaje: `Existen ${bajos.length} productos con stock bajo.`, color: c.warning, ruta: '/stock' });
-        }
-        if (mPeriodo.total < umbralBajo) {
-          nuevasAlertas.push({ id: `ventas_${periodo}`, tipo: 'Desempeño', mensaje: `Balance de $${mPeriodo.total.toFixed(2)} detectado ${pLabel}.`, color: c.info, ruta: '/pos' });
-        }
-        setTodasAlertas(nuevasAlertas);
-      } catch (err) {
-        console.log('[Dashboard] Error loading data:', err);
-      } finally {
-        setIsSyncing(false);
-      }
-    };
-
-    load();
-  }, [tenantId, isLoading, periodo]);
-
-    // Polling condicional: menos frecuente si solo hay 1 dispositivo
-    const pollingInterval = realtimeEnabled ? 3000 : 15000;
+    // 1. Polling
+    const pollingInterval = realtimeEnabled ? 5000 : 15000;
     const interval = setInterval(() => {
-      console.log('[Dashboard Polling] Refrescando métricas...');
-      const reload = async () => {
-        try {
-          const vHoy = await obtenerVentasHoy();
-          const mPeriodo = await obtenerVentasPorPeriodo(periodo);
-          const vars = await obtenerVariantes();
-          setVentasHoy(vHoy);
-          setMetricas(mPeriodo);
-          setTotalStock(vars.reduce((s, v) => s + (v.stock || 0), 0));
-        } catch (e) {}
-      }
-      reload();
+      loadData();
     }, pollingInterval);
 
-  useEffect(() => {
-    if (!tenantId || isLoading) return;
-
-    const loadSync = () => {
-      // Reutiliza la lógica de carga si es necesario o simplifica
-      console.log('[Dashboard Realtime] Cambio detectado, sincronizando...');
-    };
-
+    // 2. Realtime
     let channel: any = null;
     if (realtimeEnabled) {
       channel = supabase
         .channel(`dashboard_sync_${tenantId}`)
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'venta', filter: `negocio_id=eq.${tenantId}` }, loadSync)
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'variante', filter: `negocio_id=eq.${tenantId}` }, loadSync)
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'gasto', filter: `negocio_id=eq.${tenantId}` }, loadSync)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'venta', filter: `negocio_id=eq.${tenantId}` }, () => loadData())
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'variante', filter: `negocio_id=eq.${tenantId}` }, () => loadData())
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'gasto', filter: `negocio_id=eq.${tenantId}` }, () => loadData())
         .subscribe();
     }
 
     return () => {
+      clearInterval(interval);
       if (channel) supabase.removeChannel(channel);
     };
-  }, [tenantId, isLoading, periodo, realtimeEnabled]);
+  }, [tenantId, isLoading, loadData, realtimeEnabled]);
 
   const cambiarPeriodo = async (p: 'hoy' | 'semana' | 'mes') => {
     setPeriodo(p);
@@ -241,7 +227,7 @@ export default function Dashboard() {
       {/* HEADER TIPO PERFIL */}
       <View style={[s.header, { paddingHorizontal: contentPadding }]}>
         <TouchableOpacity style={[s.btnAvatar, { backgroundColor: c.surfaceAlt }]} onPress={goBack}>
-           <Text style={{fontSize: 20}}>🔙</Text>
+           <MaterialCommunityIcons name="arrow-left" size={24} color={c.text} />
         </TouchableOpacity>
         <View style={{ flex: 1, paddingLeft: 12 }}>
           <Text style={[s.headerTitulo, { color: c.text }]}>{biz.nombre}</Text>
@@ -252,7 +238,7 @@ export default function Dashboard() {
         </View>
         <View style={s.headerIcons}>
            <TouchableOpacity style={[s.iconBtn, { backgroundColor: c.surface }]} onPress={() => router.push('/ajustes')}>
-              <Text style={{fontSize: 20}}>⚙️</Text>
+              <MaterialCommunityIcons name="cog" size={24} color={c.text} />
            </TouchableOpacity>
         </View>
       </View>
@@ -276,8 +262,8 @@ export default function Dashboard() {
           </View>
           
           <TouchableOpacity style={[s.metaBadge, { backgroundColor: c.surfaceAlt }]} activeOpacity={1}>
-            <Text style={{fontSize: 16}}>🎯</Text>
-            <Text style={[s.metaBadgeText, { color: c.textSec }]}> ${META_DIA.toLocaleString()} meta {periodo === 'hoy' ? 'diaria' : periodo === 'mes' ? 'del mes' : 'semanal'}</Text>
+            <MaterialCommunityIcons name="target" size={18} color={c.accent} />
+            <Text style={[s.metaBadgeText, { color: c.textSec, marginLeft: 6 }]}> ${META_DIA.toLocaleString()} meta {periodo === 'hoy' ? 'diaria' : periodo === 'mes' ? 'del mes' : 'semanal'}</Text>
             <Text style={{color: c.textSec, marginLeft: 6}}>{pctMeta.toFixed(0)}%</Text>
           </TouchableOpacity>
         </View>
@@ -293,7 +279,7 @@ export default function Dashboard() {
             onPress={() => router.push('/pos')}
           >
             <View style={[s.quickIcon, { backgroundColor: c.softGreen + '30' }]}>
-              <Text style={{fontSize: 20}}>🛍️</Text>
+              <MaterialCommunityIcons name="shopping" size={20} color="#10B981" />
             </View>
             <Text style={[s.quickText, { color: c.textSec }]}>Vender</Text>
           </TouchableOpacity>
@@ -303,7 +289,7 @@ export default function Dashboard() {
             onPress={() => router.push('/stock')}
           >
             <View style={[s.quickIcon, { backgroundColor: c.softOrange + '30' }]}>
-              <Text style={{fontSize: 20}}>📦</Text>
+              <MaterialCommunityIcons name="package-variant" size={20} color="#F59E0B" />
             </View>
             <Text style={[s.quickText, { color: c.textSec }]}>Stock</Text>
           </TouchableOpacity>
@@ -313,7 +299,7 @@ export default function Dashboard() {
             onPress={() => router.push('/clientes')}
           >
             <View style={[s.quickIcon, { backgroundColor: c.softBlue + '30' }]}>
-              <Text style={{fontSize: 20}}>👥</Text>
+              <MaterialCommunityIcons name="account-group" size={20} color="#3B82F6" />
             </View>
             <Text style={[s.quickText, { color: c.textSec }]}>Clientes</Text>
           </TouchableOpacity>
@@ -323,7 +309,7 @@ export default function Dashboard() {
             onPress={() => router.push('/reportes')}
           >
             <View style={[s.quickIcon, { backgroundColor: c.softPurple + '30' }]}>
-              <Text style={{fontSize: 20}}>📊</Text>
+              <MaterialCommunityIcons name="chart-bar" size={20} color="#8B5CF6" />
             </View>
             <Text style={[s.quickText, { color: c.textSec }]}>Reportes</Text>
           </TouchableOpacity>
@@ -333,7 +319,7 @@ export default function Dashboard() {
             onPress={() => router.push('/gastos')}
           >
             <View style={[s.quickIcon, { backgroundColor: '#FF4B2B' + '30' }]}>
-              <Text style={{fontSize: 20}}>💸</Text>
+              <MaterialCommunityIcons name="wallet-outline" size={20} color="#FF4B2B" />
             </View>
             <Text style={[s.quickText, { color: c.textSec }]}>Gastos</Text>
           </TouchableOpacity>
@@ -343,7 +329,7 @@ export default function Dashboard() {
             onPress={() => router.push('/catalogo')}
           >
             <View style={[s.quickIcon, { backgroundColor: c.softBlue + '30' }]}>
-              <Text style={{fontSize: 20}}>📖</Text>
+              <MaterialCommunityIcons name="book-open-variant" size={20} color="#3B82F6" />
             </View>
             <Text style={[s.quickText, { color: c.textSec }]}>Modelos</Text>
           </TouchableOpacity>
@@ -353,7 +339,7 @@ export default function Dashboard() {
             onPress={() => router.push('/deudas')}
           >
             <View style={[s.quickIcon, { backgroundColor: c.softOrange + '30' }]}>
-              <Text style={{fontSize: 20}}>🤝</Text>
+              <MaterialCommunityIcons name="account-cash-outline" size={20} color="#F59E0B" />
             </View>
             <Text style={[s.quickText, { color: c.textSec }]}>Deudas</Text>
           </TouchableOpacity>
@@ -363,7 +349,7 @@ export default function Dashboard() {
             onPress={() => router.push('/ajustes')}
           >
             <View style={[s.quickIcon, { backgroundColor: 'rgba(128,128,128,0.3)' }]}>
-              <Text style={{fontSize: 20}}>⚙️</Text>
+              <MaterialCommunityIcons name="cog-outline" size={20} color={c.textSec} />
             </View>
             <Text style={[s.quickText, { color: c.textSec }]}>Ajustes</Text>
           </TouchableOpacity>
@@ -401,7 +387,8 @@ export default function Dashboard() {
                         style={[s.swipeDeleteBtn, { backgroundColor: c.danger }]}
                         onPress={() => descartarAlerta(a.id)}
                       >
-                         <RNAnimated.Text style={[s.swipeDeleteTxt, { transform: [{ scale: trans }] }]}>🗑️ Borrar</RNAnimated.Text>
+                         <MaterialCommunityIcons name="trash-can" size={20} color="#fff" style={{ marginRight: 4 }} />
+                         <RNAnimated.Text style={[s.swipeDeleteTxt, { transform: [{ scale: trans }] }]}>Borrar</RNAnimated.Text>
                       </TouchableOpacity>
                     );
                   }}
@@ -419,7 +406,7 @@ export default function Dashboard() {
                         <Text style={[s.notiTipo, { color: a.color }]}>{a.tipo}</Text>
                         <Text style={[s.notiMensaje, { color: c.text }]}>{a.mensaje}</Text>
                      </View>
-                     <Text style={{color: c.textTer, fontSize: 18}}>⬅️</Text>
+                     <MaterialCommunityIcons name="chevron-right" size={24} color={c.textTer} />
                   </TouchableOpacity>
                 </Swipeable>
               ))}
@@ -441,7 +428,7 @@ export default function Dashboard() {
                >
                  <View style={s.bentoCardHeader}>
                     <View style={[s.bentoIconCover, { backgroundColor: 'rgba(255,255,255,0.6)' }]}>
-                       <Text style={{fontSize: 24}}>🧾</Text>
+                        <MaterialCommunityIcons name="ticket-percent" size={26} color={c.accent} />
                     </View>
                     <View>
                        <Text style={[s.bentoValue, { color: c.text }]}>{metricas.tickets}</Text>
@@ -461,7 +448,7 @@ export default function Dashboard() {
                   onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
                   activeOpacity={0.9}
                >
-                  <Text style={{fontSize: 22}}>⭐</Text>
+                  <MaterialCommunityIcons name="star" size={26} color={c.accent} />
                   <View>
                     <Text style={[s.bentoValueSmall, { color: c.text }]}>${ticketProm.toFixed(2)}</Text>
                     <Text style={[s.bentoLabelSmall, { color: c.textSec }]}>PROMEDIO</Text>
@@ -475,7 +462,7 @@ export default function Dashboard() {
                   onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
                   activeOpacity={0.9}
                >
-                  <Text style={{fontSize: 22}}>📦</Text>
+                  <MaterialCommunityIcons name="archive" size={26} color={c.accent} />
                   <View>
                     <Text style={[s.bentoValueSmall, { color: c.text }]}>{totalStock}</Text>
                     <Text style={[s.bentoLabelSmall, { color: c.textSec }]}>EN STOCK</Text>
@@ -548,7 +535,7 @@ export default function Dashboard() {
               ventasHoy.slice(0, 5).map((v, i) => (
                 <View key={v.id} style={[s.ventaRowModern, i !== ventasHoy.length -1 && i !== 4 && {borderBottomWidth: 1, borderBottomColor: c.surfaceAlt}]}>
                   <View style={[s.ventaIconWrap, { backgroundColor: c.surfaceAlt }]}>
-                    <Text style={{fontSize: 20}}>🛒</Text>
+                    <MaterialCommunityIcons name="cart-outline" size={22} color={c.text} />
                   </View>
                   <View style={s.ventaInfo}>
                     <Text style={[s.ventaCliente, { color: c.text }]}>{v.clienteNombre}</Text>

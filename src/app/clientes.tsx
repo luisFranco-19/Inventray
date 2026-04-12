@@ -5,6 +5,7 @@ import {
   Animated
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import {
   obtenerClientes, crearCliente, actualizarCliente,
@@ -179,7 +180,7 @@ export default function Clientes() {
       {/* HEADER */}
       <View style={[st.header, { paddingHorizontal: contentPadding }]}>
         <TouchableOpacity style={[st.btnAvatar, { backgroundColor: c.surfaceAlt }]} onPress={goBack}>
-           <Text style={{fontSize: 20}}>🔙</Text>
+           <MaterialCommunityIcons name="arrow-left" size={24} color={c.text} />
         </TouchableOpacity>
         <View style={{ flex: 1, paddingLeft: 12 }}>
           <Text style={[st.headerTitulo, { color: c.text }]}>Directorio</Text>
@@ -253,9 +254,12 @@ export default function Clientes() {
         )}
         ListEmptyComponent={
           <View style={st.vacio}>
-            <Text style={{fontSize: 40, marginBottom: 12}}>
-              {periodo === 'hoy' ? '🌅' : periodo === 'semana' ? '📅' : periodo === 'mes' ? '🗓️' : '👥'}
-            </Text>
+            <MaterialCommunityIcons 
+              name={periodo === 'hoy' ? 'weather-sunny' : periodo === 'semana' ? 'calendar-week' : periodo === 'mes' ? 'calendar-month' : 'account-group'} 
+              size={48} 
+              color={c.textTer} 
+              style={{ marginBottom: 12 }}
+            />
             <Text style={[st.vacioTexto, { color: c.textTer }]}>
               {periodo === 'todos' ? 'Aún no hay clientes' : `Sin compras este ${labelPeriodo.toLowerCase()}`}
             </Text>
@@ -280,10 +284,14 @@ export default function Clientes() {
                    <TouchableOpacity onPress={() => setModalDetalle(false)} style={[st.modalBtnActionRound, { backgroundColor: c.surfaceAlt, width: 44, height: 44, borderRadius: 22 }]}>
                      <Text style={{fontSize: 24, color: c.text, lineHeight: 28}}>←</Text>
                    </TouchableOpacity>
-                   <View style={{flexDirection: 'row', gap: 10}}>
-                      <TouchableOpacity style={[st.modalBtnActionRound, { backgroundColor: c.info + '15', width: 44, height: 44, borderRadius: 22 }]} onPress={() => abrirEditar(clienteActivo)}><Text style={{fontSize: 16}}>✏️</Text></TouchableOpacity>
-                      <TouchableOpacity style={[st.modalBtnActionRound, { backgroundColor: c.danger + '15', width: 44, height: 44, borderRadius: 22 }]} onPress={() => eliminarCliente(clienteActivo)}><Text style={{fontSize: 16}}>🗑️</Text></TouchableOpacity>
-                   </View>
+                    <View style={{flexDirection: 'row', gap: 10}}>
+                       <TouchableOpacity style={[st.modalBtnActionRound, { backgroundColor: c.info + '15', width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' }]} onPress={() => abrirEditar(clienteActivo)}>
+                          <MaterialCommunityIcons name="pencil" size={20} color={c.info} />
+                       </TouchableOpacity>
+                       <TouchableOpacity style={[st.modalBtnActionRound, { backgroundColor: c.danger + '15', width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' }]} onPress={() => eliminarCliente(clienteActivo)}>
+                          <MaterialCommunityIcons name="trash-can" size={20} color={c.danger} />
+                       </TouchableOpacity>
+                    </View>
                 </View>
 
                 <View style={st.perfilHeader}>
@@ -291,7 +299,12 @@ export default function Clientes() {
                      <Text style={st.avatarGrandeText}>{iniciales(clienteActivo.nombre)}</Text>
                   </View>
                   <Text style={[st.perfilNombre, { color: c.text }]} numberOfLines={2}>{clienteActivo.nombre}</Text>
-                  {clienteActivo.telefono && <View style={[st.perfilChip, { backgroundColor: c.surfaceAlt }]}><Text style={[{ color: c.textSec, fontSize: sizes.fontSm }]}>📞 {clienteActivo.telefono}</Text></View>}
+                  {clienteActivo.telefono && (
+                    <View style={[st.perfilChip, { backgroundColor: c.surfaceAlt, flexDirection: 'row', alignItems: 'center', gap: 6 }]}>
+                      <MaterialCommunityIcons name="phone" size={14} color={c.textSec} />
+                      <Text style={[{ color: c.textSec, fontSize: sizes.fontSm }]}>{clienteActivo.telefono}</Text>
+                    </View>
+                  )}
                 </View>
 
                 <View style={{flexDirection: 'row', gap: 10, marginBottom: 30}}>

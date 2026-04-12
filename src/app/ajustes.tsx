@@ -3,6 +3,7 @@ import {
   View, Text, TouchableOpacity, ScrollView,
   StyleSheet, StatusBar, Alert, Platform, Modal, TextInput, Animated, Clipboard,
 } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -169,13 +170,18 @@ export default function Ajustes() {
   };
 
   const OPCIONES_TEMA: [string, string][] = [
-    ['#8E2DE2', '#4A00E0'],
-    ['#FF416C', '#FF4B2B'],
-    ['#11998e', '#38ef7d'],
-    ['#2193b0', '#6dd5ed'],
-    ['#FFB75E', '#ED8F03'],
-    ['#c31432', '#240b36'],
-    ['#434343', '#000000'],
+    ['#8E2DE2', '#4A00E0'], // Violeta
+    ['#FF416C', '#FF4B2B'], // Rojo Coral
+    ['#11998e', '#38ef7d'], // Verde Esmeralda
+    ['#2193b0', '#6dd5ed'], // Azul Marino
+    ['#FFB75E', '#ED8F03'], // Ámbar
+    ['#c31432', '#240b36'], // Vino
+    ['#434343', '#000000'], // Negro / Gris
+    ['#00d2ff', '#3a7bd5'], // Cyan / Blue
+    ['#009688', '#004D40'], // Teal
+    ['#f2994a', '#f2c94c'], // Orange / Yellow
+    ['#7F00FF', '#E100FF'], // Purple / Magenta
+    ['#3f51b5', '#e91e63'], // Indigo / Pink
   ];
 
   const getColorForDevice = (id?: string) => {
@@ -242,7 +248,7 @@ export default function Ajustes() {
 
       <View style={[st.header, { paddingHorizontal: contentPadding }]}>
         <TouchableOpacity style={[st.btnBack, { backgroundColor: c.surfaceAlt }]} onPress={goBack}>
-          <Text style={{ fontSize: 20 }}>🔙</Text>
+          <MaterialCommunityIcons name="arrow-left" size={24} color={c.text} />
         </TouchableOpacity>
         <View style={{ flex: 1, paddingLeft: 12 }}>
           <Text style={[st.headerTitulo, { color: c.text }]}>Ajustes</Text>
@@ -268,7 +274,7 @@ export default function Ajustes() {
             {isAdmin && (
               <TouchableOpacity style={[st.featureRow, { borderTopWidth: 1, borderTopColor: isDark ? c.surfaceAlt : c.border }]} onPress={() => setModalEditar(true)}>
                 <View style={[st.featureIcon, { backgroundColor: c.accent + '15' }]}>
-                   <Text style={{ fontSize: 20 }}>🎨</Text>
+                   <MaterialCommunityIcons name="palette" size={22} color={c.accent} />
                 </View>
                 <View style={{ flex: 1 }}>
                    <Text style={[st.featureName, { color: c.text }]}>Personalizar Apariencia</Text>
@@ -286,7 +292,11 @@ export default function Ajustes() {
               {dispositivos.map((d, i) => (
                 <View key={d.id} style={[st.deviceRow, i < dispositivos.length - 1 && { borderBottomWidth: 1, borderBottomColor: c.surfaceAlt }]}>
                   <View style={st.deviceIconWrap}>
-                    <Text style={{ fontSize: 20 }}>{d.rol === 'admin' ? '🛡️' : '📱'}</Text>
+                    <MaterialCommunityIcons 
+                      name={d.rol === 'admin' ? 'shield-check' : 'cellphone'} 
+                      size={20} 
+                      color={c.textSec} 
+                    />
                   </View>
                   <View style={st.deviceInfo}>
                     <Text style={[st.deviceName, { color: c.text }]} numberOfLines={1}>{d.nombre}</Text>
@@ -318,7 +328,7 @@ export default function Ajustes() {
            <View style={[st.section, { paddingHorizontal: contentPadding }, isTablet && { maxWidth: 600, alignSelf: 'center', width: '100%' }]}>
              <View style={[st.cardLlave, { backgroundColor: c.surface, borderColor: c.border }]}>
                 <View style={[st.iconCircle, { backgroundColor: c.accent + '20' }]}>
-                   <Text style={{ fontSize: 20 }}>🔑</Text>
+                   <MaterialCommunityIcons name="link-variant" size={24} color={c.accent} />
                 </View>
                 <View style={{ flex: 1 }}>
                    <Text style={[st.llaveTitulo, { color: c.textTer }]}>LLAVE DE VINCULACIÓN</Text>
@@ -346,7 +356,11 @@ export default function Ajustes() {
                  <Text style={[st.infoLabel, { color: c.textSec, flex: 1 }]}>Modo de Visualización</Text>
                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                     <Text style={{ color: c.text, fontWeight: '600' }}>{isDark ? 'Oscuro' : 'Claro'}</Text>
-                    <Text style={{ fontSize: 20 }}>{isDark ? '🌙' : '☀️'}</Text>
+                    <MaterialCommunityIcons 
+                      name={isDark ? 'moon-waning-crescent' : 'white-balance-sunny'} 
+                      size={20} 
+                      color={isDark ? '#f1c40f' : '#f39c12'} 
+                    />
                  </View>
               </TouchableOpacity>
            </View>
@@ -362,12 +376,12 @@ export default function Ajustes() {
                   Esta acción borrará permanently todos tus datos, incluyendo el inventario, catálogo, ventas y configuraciones y tu llave será desconectada de todos los equipos.
                 </Text>
               </View>
-              <TouchableOpacity
+                 <TouchableOpacity
                 activeOpacity={0.7}
                 style={[st.dangerBtn, { backgroundColor: c.danger, borderColor: c.danger, marginHorizontal: 20, marginBottom: 20 }]}
                 onPress={confirmarEliminar}
               >
-                <Text style={{ fontSize: 20 }}>⚠️</Text>
+                <MaterialCommunityIcons name="alert" size={20} color="#fff" />
                 <Text style={[st.dangerBtnText, { color: '#ffffff', fontSize: 16 }]}>Eliminar Negocio Definitivamente</Text>
               </TouchableOpacity>
             </View>
@@ -382,7 +396,7 @@ export default function Ajustes() {
               onPress={confirmarSalir}
             >
               <View style={[st.featureIcon, { backgroundColor: c.danger + '15' }]}>
-                <Text style={{ fontSize: 24 }}>🚪</Text>
+                <MaterialCommunityIcons name="logout" size={24} color={c.danger} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={[st.featureName, { color: c.danger, fontWeight: '800' }]}>Salir del Negocio</Text>
@@ -399,7 +413,7 @@ export default function Ajustes() {
           <View style={[st.modalCard, { backgroundColor: c.surface, borderColor: c.danger, borderWidth: 1 }, isTablet && { maxWidth: 500, alignSelf: 'center' }]}>
             <View style={{ alignItems: 'center', marginBottom: 16 }}>
               <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: c.danger + '20', alignItems: 'center', justifyContent: 'center' }}>
-                <Text style={{ fontSize: 32 }}>⚠️</Text>
+                <MaterialCommunityIcons name="alert-octagon" size={32} color={c.danger} />
               </View>
             </View>
             <Text style={[st.modalTitle, { color: c.text }]}>¿Eliminar Negocio?</Text>
@@ -429,9 +443,6 @@ export default function Ajustes() {
                <ScrollView showsVerticalScrollIndicator={false}>
                  <Text style={st.modalLabel}>Nombre</Text>
                  <TextInput style={[st.modalInput, { backgroundColor: c.surfaceAlt, color: c.text }]} value={editNombre} onChangeText={setEditNombre} />
-                 
-                 <Text style={st.modalLabel}>Ícono / Emoji</Text>
-                 <TextInput style={[st.modalInput, { backgroundColor: c.surfaceAlt, color: c.text, textAlign: 'center' }]} value={editIcono} onChangeText={setEditIcono} maxLength={2} />
                  
                  <Text style={st.modalLabel}>Color del Negocio</Text>
                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 16 }}>
@@ -526,14 +537,26 @@ export default function Ajustes() {
               {['ventas', 'inventario', 'catalogo', 'dashboard', 'clientes', 'gastos', 'deudas', 'reportes', 'ajustes'].map(p => (
                 <TouchableOpacity key={p} style={[st.permisoRow, { borderColor: c.border }]} onPress={() => togglePermiso(p)}>
                   <Text style={[st.permisoLabel, { color: c.text }]}>
-                    {p === 'ventas' ? '🛍️ Punto de Venta' : 
-                     p === 'inventario' ? '📦 Control de Stock' : 
-                     p === 'dashboard' ? '📊 Métricas (Dashboard)' :
-                     p === 'catalogo' ? '📖 Catálogo' :
-                     p === 'gastos' ? '📉 Gastos' :
-                     p === 'deudas' ? '🤝 Cuentas x Cobrar' :
-                     p === 'clientes' ? '👥 Clientes' : 
-                     p === 'ajustes' ? '⚙️ Ajustes y Configuración' : '📈 Reportes'}
+                    <MaterialCommunityIcons 
+                      name={p === 'ventas' ? 'shopping' : 
+                            p === 'inventario' ? 'package-variant' : 
+                            p === 'dashboard' ? 'chart-bar' :
+                            p === 'catalogo' ? 'book-open-variant' :
+                            p === 'gastos' ? 'chart-line-variant' :
+                            p === 'deudas' ? 'handshake' :
+                            p === 'clientes' ? 'account-group' : 
+                            p === 'ajustes' ? 'cog' : 'chart-line'} 
+                      size={18} 
+                      color={c.textSec} 
+                    /> {' '}
+                    {p === 'ventas' ? 'Punto de Venta' : 
+                     p === 'inventario' ? 'Control de Stock' : 
+                     p === 'dashboard' ? 'Métricas (Dashboard)' :
+                     p === 'catalogo' ? 'Catálogo' :
+                     p === 'gastos' ? 'Gastos' :
+                     p === 'deudas' ? 'Cuentas x Cobrar' :
+                     p === 'clientes' ? 'Clientes' : 
+                     p === 'ajustes' ? 'Ajustes y Configuración' : 'Reportes'}
                   </Text>
                   <View style={[st.checkbox, { backgroundColor: permisosEdit.includes(p) ? c.accent : c.surfaceAlt }]}>
                     {permisosEdit.includes(p) && <Text style={{ color: '#fff', fontSize: 10 }}>✓</Text>}
@@ -570,7 +593,7 @@ export default function Ajustes() {
             <View style={{ padding: 20, gap: 10 }}>
               <TouchableOpacity activeOpacity={0.7} style={[st.actionItem, { backgroundColor: c.surfaceAlt, borderRadius: 12, borderBottomWidth: 0, paddingHorizontal: 16 }]} onPress={() => { setModalAcciones(false); setPermisosEdit(dispSeleccionado?.permisos || []); setModalPermisos(true); }}>
                 <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: c.text + '10', alignItems: 'center', justifyContent: 'center', marginRight: 14 }}>
-                  <Text style={{ fontSize: 18 }}>🔑</Text>
+                  <MaterialCommunityIcons name="key" size={18} color={c.textSec} />
                 </View>
                 <Text style={[st.actionItemText, { color: c.text, flex: 1 }]}>Gestionar Permisos</Text>
                 <Text style={{ color: c.textTer }}>›</Text>
@@ -578,7 +601,7 @@ export default function Ajustes() {
 
               <TouchableOpacity activeOpacity={0.7} style={[st.actionItem, { backgroundColor: c.surfaceAlt, borderRadius: 12, borderBottomWidth: 0, paddingHorizontal: 16 }]} onPress={() => { setModalAcciones(false); cambiarRolDispositivo(dispSeleccionado?.id, dispSeleccionado?.rol === 'admin' ? 'empleado' : 'admin'); }}>
                 <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: c.text + '10', alignItems: 'center', justifyContent: 'center', marginRight: 14 }}>
-                  <Text style={{ fontSize: 18 }}>🛡️</Text>
+                  <MaterialCommunityIcons name="shield-check" size={18} color={c.textSec} />
                 </View>
                 <Text style={[st.actionItemText, { color: c.text, flex: 1 }]}>{dispSeleccionado?.rol === 'admin' ? 'Bajar a Empleado' : 'Subir a Administrador'}</Text>
                 <Text style={{ color: c.textTer }}>›</Text>
@@ -586,7 +609,7 @@ export default function Ajustes() {
 
               <TouchableOpacity activeOpacity={0.7} style={[st.actionItem, { backgroundColor: c.danger + '15', borderRadius: 12, borderBottomWidth: 0, paddingHorizontal: 16 }]} onPress={() => { setModalAcciones(false); Alert.alert('Expulsar', '¿Confirmas?', [{ text: 'No' }, { text: 'Sí', style: 'destructive', onPress: () => eliminarDispositivo(dispSeleccionado?.id) }]); }}>
                 <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: c.danger + '20', alignItems: 'center', justifyContent: 'center', marginRight: 14 }}>
-                  <Text style={{ fontSize: 18 }}>🚫</Text>
+                  <MaterialCommunityIcons name="account-remove" size={18} color={c.danger} />
                 </View>
                 <Text style={[st.actionItemText, { color: c.danger, flex: 1 }]}>Expulsar del Negocio</Text>
               </TouchableOpacity>

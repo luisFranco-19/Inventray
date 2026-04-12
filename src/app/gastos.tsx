@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import {
   View, Text, TouchableOpacity, TextInput, FlatList,
   StyleSheet, Alert, Modal, ScrollView, StatusBar, Animated
@@ -154,7 +155,7 @@ export default function Gastos() {
       {/* Header */}
       <View style={[s.header, { paddingHorizontal: contentPadding }]}>
         <TouchableOpacity style={s.btnBack} onPress={goBack}>
-          <Text style={{ fontSize: 20 }}>🔙</Text>
+          <MaterialCommunityIcons name="arrow-left" size={24} color={c.text} />
         </TouchableOpacity>
         <View style={{ flex: 1, paddingLeft: 12 }}>
           <Text style={[s.headerTitle, { color: c.text }]}>Gastos del Negocio</Text>
@@ -167,10 +168,10 @@ export default function Gastos() {
           style={[s.btnHelp, { backgroundColor: c.surfaceAlt, marginRight: 10 }]} 
           onPress={() => setMostrarGuia(true)}
         >
-          <Text style={{ fontSize: 18, color: c.info }}>ℹ️</Text>
+          <MaterialCommunityIcons name="information-outline" size={24} color={c.info} />
         </TouchableOpacity>
         <TouchableOpacity style={[s.btnAdd, { backgroundColor: c.accent }]} onPress={() => setModalVisible(true)}>
-          <Text style={{ color: '#fff', fontSize: 24 }}>+</Text>
+          <MaterialCommunityIcons name="plus" size={24} color="#fff" />
         </TouchableOpacity>
       </View>
 
@@ -182,7 +183,7 @@ export default function Gastos() {
             <Text style={s.heroValor}>{totalPeriodo === 0 ? '$0.00' : `-${totalPeriodo.toLocaleString('es-MX', { minimumFractionDigits: 2 })}`}</Text>
           </View>
           <View style={s.heroIcon}>
-            <Text style={{ fontSize: 32 }}>📉</Text>
+            <MaterialCommunityIcons name="trending-down" size={32} color="rgba(255,255,255,0.7)" />
           </View>
         </LinearGradient>
 
@@ -218,7 +219,7 @@ export default function Gastos() {
         renderItem={({ item }) => (
           <View style={[s.itemCard, { backgroundColor: c.surface, borderColor: c.border, flex: isTablet ? 1 : 0, marginBottom: isTablet ? 0 : 12 }]}>
             <View style={[s.itemIcon, { backgroundColor: c.surfaceAlt }]}>
-               <Text style={{fontSize: 18}}>💸</Text>
+               <MaterialCommunityIcons name="cash-minus" size={24} color={c.danger} />
             </View>
             <View style={{ flex: 1, paddingLeft: 12 }}>
               <Text style={[s.itemName, { color: c.text }]} numberOfLines={1}>{item.descripcion}</Text>

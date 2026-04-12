@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, StatusBar, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useFocusEffect } from 'expo-router';
@@ -146,7 +147,7 @@ export default function CatalogoVirtual() {
         
         <View style={[st.header, { paddingHorizontal: contentPadding }]}>
           <TouchableOpacity style={[st.btnAvatar, { backgroundColor: c.surfaceAlt }]} onPress={goBack}>
-             <Text style={{fontSize: 20}}>🔙</Text>
+             <MaterialCommunityIcons name="arrow-left" size={24} color={c.text} />
           </TouchableOpacity>
           <View style={{ flex: 1, paddingLeft: 12 }}>
              <Text style={[st.headerTitulo, { color: c.text }]}>Catálogo Virtual</Text>
@@ -160,7 +161,7 @@ export default function CatalogoVirtual() {
             onPress={generarPDF}
             disabled={generando}
           >
-             <Text style={{fontSize: 20, color: '#fff'}}>{generando ? '⏳' : '📤'}</Text>
+             <MaterialCommunityIcons name={generando ? "progress-clock" : "export-variant"} size={22} color="#fff" />
           </TouchableOpacity>
         </View>
 
@@ -189,7 +190,7 @@ export default function CatalogoVirtual() {
                 <Image source={{ uri: item.imagenUrl }} style={st.cardImage} />
               ) : (
                 <View style={[st.cardImagePlaceholder, { backgroundColor: c.surfaceAlt }]}>
-                  <Text style={{fontSize: 40}}>📦</Text>
+                  <MaterialCommunityIcons name="package-variant" size={40} color={c.textTer} />
                 </View>
               )}
               <Text style={[st.cardTitle, { color: c.text }]} numberOfLines={2}>{item.productoNombre}</Text>

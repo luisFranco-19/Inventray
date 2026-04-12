@@ -3,6 +3,7 @@ import {
   View, Text, StyleSheet, Modal, TouchableOpacity, 
   Dimensions, Animated, Platform
 } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useBusiness } from '../context/BusinessContext';
 import { useTheme } from '../context/ThemeContext';
@@ -23,28 +24,28 @@ const SLIDES: Slide[] = [
     id: 0,
     titulo: '¡Hola! Te damos la bienvenida',
     desc: 'Tu negocio está listo para despegar. Hemos configurado lo básico para que empieces hoy mismo.',
-    icono: '✨',
+    icono: 'sparkles',
     color: '#8E2DE2',
   },
   {
     id: 1,
     titulo: 'Gestiona tu Inventario',
     desc: 'Agrega productos, define variantes (tallas, colores) y recibe alertas cuando el stock esté bajo.',
-    icono: '📦',
+    icono: 'package-variant',
     color: '#1D4ED8',
   },
   {
     id: 2,
     titulo: 'Vende en Segundos',
     desc: 'Usa el "Punto de Venta" para cobrar rápido. Es compatible con escáner de barras y múltiples pagos.',
-    icono: '🛍️',
+    icono: 'shopping',
     color: '#16A34A',
   },
   {
     id: 3,
     titulo: 'Métricas de Éxito',
     desc: 'En "Reportes Financieros" verás tus ganancias netas, productos más vendidos y salud de tu negocio.',
-    icono: '📈',
+    icono: 'chart-line',
     color: '#E91E8C',
   },
 ];
@@ -109,7 +110,7 @@ export function GuiaOnboarding() {
           
           <Animated.View style={[st.content, { opacity: fadeAnim, transform: [{ translateX: slideAnim }] }]}>
             <View style={[st.iconCircle, { backgroundColor: currentSlide.color + '20' }]}>
-               <Text style={st.iconText}>{currentSlide.icono}</Text>
+               <MaterialCommunityIcons name={currentSlide.icono as any} size={48} color={currentSlide.color} />
             </View>
             
             <Text style={[st.titulo, { color: c.text }]}>

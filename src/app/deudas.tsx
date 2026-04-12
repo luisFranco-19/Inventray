@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import {
   View, Text, TouchableOpacity, TextInput, FlatList,
   StyleSheet, Alert, Modal, ScrollView, StatusBar, Linking, Animated
@@ -171,7 +172,7 @@ export default function Deudas() {
       {/* Header */}
       <View style={[s.header, { paddingHorizontal: contentPadding }]}>
         <TouchableOpacity style={s.btnBack} onPress={goBack}>
-          <Text style={{ fontSize: 20 }}>🔙</Text>
+          <MaterialCommunityIcons name="arrow-left" size={24} color={c.text} />
         </TouchableOpacity>
         <View style={{ flex: 1, paddingLeft: 12 }}>
           <Text style={[s.headerTitle, { color: c.text }]}>Cuentas por Cobrar</Text>
@@ -184,7 +185,7 @@ export default function Deudas() {
           style={[s.btnHelp, { backgroundColor: c.surfaceAlt }]} 
           onPress={() => setMostrarGuia(true)}
         >
-          <Text style={{ fontSize: 18, color: c.info }}>ℹ️</Text>
+          <MaterialCommunityIcons name="information-outline" size={24} color={c.info} />
         </TouchableOpacity>
       </View>
 
@@ -196,7 +197,7 @@ export default function Deudas() {
             <Text style={s.heroValor}>${totalDeuda.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</Text>
           </View>
           <View style={s.heroIcon}>
-            <Text style={{ fontSize: 32 }}>🤝</Text>
+            <MaterialCommunityIcons name="handshake-outline" size={32} color="rgba(255,255,255,0.7)" />
           </View>
         </LinearGradient>
       </View>
@@ -239,7 +240,7 @@ export default function Deudas() {
                
                <View style={{ flexDirection: 'row', gap: 8, marginTop: 10 }}>
                   <TouchableOpacity style={[s.btnAction, { backgroundColor: c.surfaceAlt }]} onPress={() => recordarPorWhatsApp(item)}>
-                     <Text style={{fontSize: 14}}>💬</Text>
+                     <MaterialCommunityIcons name="whatsapp" size={18} color="#25D366" />
                   </TouchableOpacity>
                   <TouchableOpacity style={[s.btnAction, { backgroundColor: c.accent }]} onPress={() => { setDeudaSeleccionada(item); setModalAbono(true); }}>
                      <Text style={{color: '#fff', fontWeight: 'bold', fontSize: 12}}>ABONAR</Text>
@@ -306,7 +307,7 @@ export default function Deudas() {
                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
                   <Text style={cs.modalTitulo}>Detalle de Cuenta</Text>
                   <TouchableOpacity onPress={() => setModalDetalle(false)}>
-                     <Text style={{ fontSize: 18, color: c.textTer }}>✕</Text>
+                     <MaterialCommunityIcons name="close" size={24} color={c.textTer} />
                   </TouchableOpacity>
                </View>
 
@@ -338,7 +339,7 @@ export default function Deudas() {
                               <Text style={{ color: c.text, fontWeight: '600' }}>+${a.monto.toFixed(2)}</Text>
                               <Text style={{ color: c.textTer, fontSize: 11 }}>{a.metodoPago} • {a.fecha}</Text>
                            </View>
-                           <Text style={{ fontSize: 18 }}>✅</Text>
+                           <MaterialCommunityIcons name="check-circle" size={24} color={c.accent} />
                         </View>
                      ))
                   )}

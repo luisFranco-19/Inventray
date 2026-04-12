@@ -3,6 +3,7 @@ import {
   Platform, View, Text, TextInput, TouchableOpacity, FlatList,
   StyleSheet, Alert, ScrollView, useWindowDimensions, StatusBar, Modal, Animated as RNAnimated
 } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter, useLocalSearchParams } from 'expo-router';
@@ -38,10 +39,10 @@ export default function PuntoDeVenta() {
   const { isTablet, isLargeTablet, contentPadding } = useResponsive();
 
   const PASOS_GUIA = [
-    { titulo: 'Catálogo de Ventas', desc: 'Toca cualquier artículo de la lista para añadirlo al carrito. Los productos sin stock aparecerán deshabilitados.', icono: '🛍️', color: c.info },
-    { titulo: 'Cobro con Cámara', desc: 'Usa el botón de la cámara arriba a la derecha para escanear códigos de barras y añadir productos al instante.', icono: '📷', color: c.accent },
-    { titulo: 'Gestión del Ticket', desc: 'En el resumen puedes ver lo que llevas cobrado, cambiar cantidades (+/-) y aplicar descuentos.', icono: '🧾', color: c.warning },
-    { titulo: 'Pagar y Descontar', desc: 'Selecciona el método de pago y presiona el botón azul para registrar el dinero y actualizar el inventario.', icono: '✅', color: c.accent },
+    { titulo: 'Catálogo de Ventas', desc: 'Toca cualquier artículo de la lista para añadirlo al carrito. Los productos sin stock aparecerán deshabilitados.', icono: 'shopping', color: c.info },
+    { titulo: 'Cobro con Cámara', desc: 'Usa el botón de la cámara arriba a la derecha para escanear códigos de barras y añadir productos al instante.', icono: 'camera', color: c.accent },
+    { titulo: 'Gestión del Ticket', desc: 'En el resumen puedes ver lo que llevas cobrado, cambiar cantidades (+/-) y aplicar descuentos.', icono: 'ticket-confirmation', color: c.warning },
+    { titulo: 'Pagar y Descontar', desc: 'Selecciona el método de pago y presiona el botón azul para registrar el dinero y actualizar el inventario.', icono: 'check-circle', color: c.accent },
   ];
 
   // Escáner State
@@ -254,7 +255,7 @@ export default function PuntoDeVenta() {
       
       <View style={[s.header, { paddingHorizontal: contentPadding }]}>
         <TouchableOpacity style={[s.btnBack, { backgroundColor: c.surfaceAlt }]} onPress={goBack}>
-          <Text style={{fontSize: 20}}>🔙</Text>
+          <MaterialCommunityIcons name="arrow-left" size={24} color={c.text} />
         </TouchableOpacity>
         <View style={{ flex: 1, paddingLeft: 12 }}>
           <Text style={[s.headerTitle, { color: c.text }]}>Punto de Venta</Text>
@@ -268,10 +269,10 @@ export default function PuntoDeVenta() {
           onPress={() => setMostrarGuia(true)} 
           activeOpacity={0.8}
         >
-          <Text style={{fontSize: 20, color: c.info}}>ℹ️</Text>
+          <MaterialCommunityIcons name="information-outline" size={24} color={c.info} />
         </TouchableOpacity>
         <TouchableOpacity style={[s.btnScan, { backgroundColor: c.accent }]} onPress={abrirEscaner} activeOpacity={0.8}>
-          <Text style={{fontSize: 20}}>📷</Text>
+          <MaterialCommunityIcons name="camera" size={24} color="#fff" />
         </TouchableOpacity>
       </View>
 
@@ -338,7 +339,7 @@ export default function PuntoDeVenta() {
                   activeOpacity={0.85}
                 >
                   <View style={[s.productoIconWrap, { backgroundColor: c.surfaceAlt, marginBottom: isTablet ? 10 : 0, alignSelf: isTablet ? 'center' : 'auto' }]}>
-                     <Text style={{fontSize: 20}}>🛍️</Text>
+                     <MaterialCommunityIcons name="package-variant-closed" size={24} color={c.textSec} />
                   </View>
                   <View style={s.productoInfo}>
                     <Text style={[s.productoNombre, { color: c.text, textAlign: isTablet ? 'center' : 'left' }]} numberOfLines={isTablet ? 2 : 1}>{item.productoNombre}</Text>
@@ -446,10 +447,15 @@ export default function PuntoDeVenta() {
                                 setMetodoPago(m);
                              }}
                           >
-                             <Text style={{ fontSize: 18, marginRight: 8 }}>{opt?.icon || '💰'}</Text>
-                             <Text style={[s.metodBtnTextP, { color: isSelected ? '#fff' : c.textSec, fontWeight: isSelected ? '800' : '600' }]}>
-                                {opt?.label.split(' ')[0] || m}
-                             </Text>
+                           <MaterialCommunityIcons 
+                              name={(opt?.icon as any) || 'cash'} 
+                              size={22} 
+                              color={isSelected ? '#fff' : c.textSec} 
+                              style={{ marginRight: 8 }} 
+                           />
+                           <Text style={[s.metodBtnTextP, { color: isSelected ? '#fff' : c.textSec, fontWeight: isSelected ? '800' : '600' }]}>
+                              {opt?.label.split(' ')[0] || m}
+                           </Text>
                           </TouchableOpacity>
                          );
                       })}

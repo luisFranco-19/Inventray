@@ -148,194 +148,156 @@ export function commonStyles(c: ThemeColors) {
     header: {
       flexDirection: 'row',
       alignItems: 'center',
-      paddingHorizontal: sizes.headerPaddingH,
-      paddingVertical: sizes.headerPaddingV,
-      borderBottomWidth: 1,
-      borderBottomColor: c.border,
-      backgroundColor: c.surface,
-    },
-    headerBetween: {
-      flexDirection: 'row',
-      alignItems: 'center',
       justifyContent: 'space-between',
       paddingHorizontal: sizes.headerPaddingH,
       paddingVertical: sizes.headerPaddingV,
-      borderBottomWidth: 1,
-      borderBottomColor: c.border,
-      backgroundColor: c.surface,
     },
     headerTitle: {
-      fontSize: sizes.font2xl,
+      fontSize: sizes.fontXl,
       fontWeight: '700',
       color: c.text,
     },
-    headerSub: {
+    headerSubtitle: {
       fontSize: sizes.fontSm,
-      color: c.textTer,
+      color: c.textSec,
       marginTop: 2,
     },
 
-    // Botón volver
-    btnBack: {
-      width: sizes.btnBackSize,
-      height: sizes.btnBackSize,
-      borderRadius: sizes.btnBackSize / 2,
-      borderWidth: 1,
-      borderColor: c.border,
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginRight: sizes.spacingMd,
-      backgroundColor: c.bg,
-    },
-    btnBackText: {
-      fontSize: sizes.fontXl,
-      color: c.text,
-      marginTop: -1,
-    },
-
-    // Tarjeta genérica
+    // Tarjetas y Contenedores
     card: {
       backgroundColor: c.surface,
-      borderRadius: sizes.radiusLg,
+      borderRadius: sizes.radiusMd,
       padding: sizes.spacingLg,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 10 },
-      shadowOpacity: 0.05, shadowRadius: 20,
-      elevation: 4
-    },
-
-    // Buscador
-    searchBox: {
-      backgroundColor: c.surface,
-      paddingHorizontal: sizes.spacingLg,
-      paddingVertical: sizes.spacingSm + 2,
-      borderBottomWidth: 1,
-      borderBottomColor: c.border,
-    },
-    buscador: {
-      backgroundColor: c.bg,
-      borderRadius: sizes.radiusSm + 2,
+      marginBottom: sizes.spacingMd,
       borderWidth: 1,
       borderColor: c.border,
-      paddingHorizontal: 14,
-      paddingVertical: 10,
-      fontSize: sizes.fontBase,
-      color: c.text,
     },
 
-    // Modal
+    // Inputs
+    input: {
+      backgroundColor: c.surfaceAlt,
+      borderRadius: sizes.radiusSm,
+      padding: sizes.spacingMd,
+      color: c.text,
+      fontSize: sizes.fontBase,
+      borderWidth: 1,
+      borderColor: c.border,
+    },
+
+    // Botones
+    button: {
+      backgroundColor: c.accent,
+      borderRadius: sizes.radiusMd,
+      paddingVertical: sizes.spacingMd,
+      paddingHorizontal: sizes.spacingXl,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    buttonText: {
+      color: '#FFFFFF',
+      fontSize: sizes.fontBase,
+      fontWeight: '600',
+    },
+
+    // Texto
+    label: {
+      fontSize: sizes.fontSm,
+      fontWeight: '600',
+      color: c.textSec,
+      marginBottom: sizes.spacingXs,
+    },
+    value: {
+      fontSize: sizes.fontBase,
+      color: c.text,
+      fontWeight: '700',
+    },
+    // Modales (Standard)
     modalOverlay: {
       flex: 1,
-      backgroundColor: 'rgba(0,0,0,0.55)',
+      backgroundColor: 'rgba(0,0,0,0.6)',
       justifyContent: 'flex-end',
     },
     modalCard: {
       backgroundColor: c.surface,
-      borderTopLeftRadius: sizes.radiusXl,
-      borderTopRightRadius: sizes.radiusXl,
-      padding: sizes.spacing2xl,
+      borderTopLeftRadius: sizes.radius2xl,
+      borderTopRightRadius: sizes.radius2xl,
+      padding: 24,
+      maxHeight: '92%',
     },
     modalTitulo: {
-      fontSize: sizes.fontXl,
-      fontWeight: '700',
+      fontSize: sizes.font2xl,
+      fontWeight: '800',
       color: c.text,
-      marginBottom: 4,
+      marginBottom: 8,
     },
     modalSub: {
-      fontSize: sizes.fontMd,
+      fontSize: sizes.fontSm,
       color: c.textTer,
-      marginBottom: sizes.spacingLg,
+      marginBottom: 20,
+      lineHeight: 20,
     },
     modalLabel: {
-      fontSize: sizes.fontMd,
-      color: c.textSec,
-      fontWeight: '600',
-      marginBottom: sizes.spacingSm,
-      marginTop: 14,
+      fontSize: sizes.fontXs,
+      fontWeight: '700',
+      color: c.textTer,
+      marginBottom: 8,
+      marginTop: 16,
+      textTransform: 'uppercase',
+      letterSpacing: 1,
     },
     modalInput: {
-      borderWidth: 1,
-      borderColor: c.border,
-      borderRadius: sizes.radiusSm + 2,
-      paddingHorizontal: 14,
-      paddingVertical: 11,
-      fontSize: sizes.fontBase,
+      backgroundColor: c.surfaceAlt,
+      borderRadius: sizes.radiusXl,
+      padding: 16,
       color: c.text,
-      backgroundColor: c.bg,
+      fontSize: sizes.fontBase,
+      fontWeight: '600',
     },
     modalBtns: {
       flexDirection: 'row',
-      gap: sizes.spacingMd,
+      gap: 12,
+      marginTop: 24,
     },
     modalBtnCancelar: {
       flex: 1,
-      paddingVertical: 14,
-      borderRadius: sizes.radiusFull,
-      borderWidth: 1,
-      borderColor: c.border,
+      paddingVertical: 16,
+      borderRadius: sizes.radiusXl,
       alignItems: 'center',
       backgroundColor: c.surfaceAlt,
     },
     modalBtnCancelarText: {
       fontSize: sizes.fontBase,
-      fontWeight: '600',
+      fontWeight: '700',
       color: c.textSec,
     },
     modalBtnConfirmar: {
-      flex: 1,
-      paddingVertical: 14,
-      borderRadius: sizes.radiusFull,
-      backgroundColor: c.accent,
+      flex: 2,
+      paddingVertical: 16,
+      borderRadius: sizes.radiusXl,
       alignItems: 'center',
-      shadowColor: c.accent,
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.3, shadowRadius: 10,
-      elevation: 6
+      backgroundColor: c.accent,
     },
     modalBtnConfirmarText: {
       fontSize: sizes.fontBase,
-      fontWeight: '700',
-      color: '#fff',
+      fontWeight: '800',
+      color: '#FFFFFF',
     },
-
-    // Badge
-    badge: {
-      backgroundColor: c.bg,
-      borderWidth: 1,
-      borderColor: c.border,
-      borderRadius: 4,
-      paddingHorizontal: 7,
-      paddingVertical: 3,
-    },
-    badgeText: {
-      fontSize: sizes.fontXs,
-      color: c.textSec,
-      fontWeight: '500',
-    },
-
-    // Sección
-    seccionTitulo: {
-      fontSize: sizes.fontXs,
-      fontWeight: '700',
-      color: c.textTer,
-      letterSpacing: 1.5,
-      marginBottom: sizes.spacingMd,
-    },
-
-    // Vacío
+    // Estados vacíos (Standard)
     vacio: {
-      paddingTop: 80,
+      paddingTop: 60,
       alignItems: 'center',
+      justifyContent: 'center',
       paddingHorizontal: 40,
     },
     vacioTitulo: {
       fontSize: sizes.fontLg,
       fontWeight: '700',
-      color: c.textTer,
-      marginBottom: sizes.spacingSm,
+      color: c.text,
+      marginBottom: 8,
+      textAlign: 'center',
     },
     vacioSub: {
-      fontSize: sizes.fontMd,
+      fontSize: sizes.fontSm,
       color: c.textTer,
       textAlign: 'center',
       lineHeight: 20,

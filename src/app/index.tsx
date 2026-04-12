@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import {
   View, Text, TouchableOpacity,
   StatusBar, StyleSheet, Animated as RNAnimated, Dimensions
@@ -46,21 +47,18 @@ const MenuItemRGB = ({ titulo, subtitulo, icono, colors, onPress, delay, isTable
   const cardOffset = BANNER_HEIGHT + (index * ITEM_HEIGHT);
 
   // Animación de 'Esconderse' arriba (Stacking) sin Transparencia
-  // Movimiento suave hacia arriba cuando ya está cerca del tope
   const parallaxTranslateY = scrollY ? scrollY.interpolate({
     inputRange: [cardOffset - 400, cardOffset, cardOffset + 500],
-    outputRange: [0, 0, -420], // Se desliza hacia arriba mientras escala
+    outputRange: [0, 0, -420], 
     extrapolate: 'clamp'
   }) : 0;
 
   const stackScale = scrollY ? scrollY.interpolate({
     inputRange: [cardOffset - 200, cardOffset, cardOffset + 400],
-    outputRange: [1, 1, 0.85], // Escala ligeramente hacia abajo al salir
+    outputRange: [1, 1, 0.85], 
     extrapolate: 'clamp'
   }) : 1;
 
-  // IMPORTANTE: Mantener opacidad a 1 para evitar "ghosting" del fondo
-  // Solo se desvanece al final extremo si es necesario
   const stackOpacity = scrollY ? scrollY.interpolate({
     inputRange: [cardOffset + 400, cardOffset + 600],
     outputRange: [1, 0],
@@ -78,8 +76,8 @@ const MenuItemRGB = ({ titulo, subtitulo, icono, colors, onPress, delay, isTable
       opacity: stackOpacity,
       width: '100%',
       zIndex: 100 - index,
-      marginBottom: -15, // Efecto tarjeta apilada
-      backgroundColor: isDark ? '#121212' : '#FFFFFF', // Fondo sólido antipantalla fantasma
+      marginBottom: -15, 
+      backgroundColor: isDark ? '#1c1c1c' : '#FFFFFF', 
       borderRadius: 40,
       elevation: 8,
       shadowColor: '#000',
@@ -104,7 +102,7 @@ const MenuItemRGB = ({ titulo, subtitulo, icono, colors, onPress, delay, isTable
 
         <View style={styles.rgbTopRow}>
           <View style={[styles.rgbIconContainer, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
-            <Text style={{ fontSize: isTablet ? 32 : 26 }}>{icono}</Text>
+            <MaterialCommunityIcons name={icono} size={isTablet ? 32 : 26} color="#FFFFFF" />
           </View>
           <Text style={[styles.rgbSubtitulo, { color: textOnCard, opacity: 0.85 }]}>{subtitulo}</Text>
         </View>
@@ -123,7 +121,7 @@ const MenuItemRGB = ({ titulo, subtitulo, icono, colors, onPress, delay, isTable
 
 const HeaderBanner = ({ config, day, colors: c, padding }: any) => {
   const currentGradiente = config.customGradiente || config.gradiente || ['#4A00E0', '#8E2DE2'];
-  const currentIcono = config.customIcono || config.icono || '🏪';
+  const currentIcono = config.customIcono || config.icono || 'storefront';
 
   return (
     <View style={{ paddingHorizontal: padding, marginTop: 10, marginBottom: 25 }}>
@@ -154,7 +152,11 @@ const HeaderBanner = ({ config, day, colors: c, padding }: any) => {
             </View>
           </View>
           <View style={styles.bannerIconBox}>
-            <Text style={{ fontSize: 40 }}>{currentIcono}</Text>
+            {currentIcono.includes('-') || currentIcono.length > 2 ? (
+              <MaterialCommunityIcons name={currentIcono as any} size={40} color="#FFFFFF" />
+            ) : (
+              <MaterialCommunityIcons name="storefront" size={40} color="#FFFFFF" />
+            )}
           </View>
         </View>
       </LinearGradient>
@@ -245,7 +247,7 @@ export default function Index() {
             style={[styles.btnHelpHeader, { backgroundColor: c.surfaceAlt }]}
             onPress={() => setMostrarGuia(true)}
           >
-            <Text style={{ fontSize: 18, color: c.info }}>ℹ️</Text>
+            <MaterialCommunityIcons name="information-outline" size={24} color={c.info} />
           </TouchableOpacity>
         </View>
 
@@ -263,15 +265,15 @@ export default function Index() {
             <View style={styles.verticalStack}>
               {(() => {
                 let availableItems = [
-                  (isAdmin || userPermisos.includes('ventas')) && { titulo: "Punto de Venta", subtitulo: "- Cobros rápidos", icono: "🛍️", colors: ['#FFCA28', '#FF8F00'], route: '/pos', delay: 100 },
-                  (isAdmin || userPermisos.includes('inventario')) && { titulo: "Control de Stock", subtitulo: "- Inventario Real", icono: "📦", colors: ['#FF7043', '#D84315'], route: '/stock', delay: 150 },
-                  (isAdmin || userPermisos.includes('catalogo')) && { titulo: "Catálogo", subtitulo: "- Ver productos", icono: "📖", colors: ['#42A5F5', '#1565C0'], route: '/catalogo', delay: 200 },
-                  (isAdmin || userPermisos.includes('dashboard')) && { titulo: "Métricas", subtitulo: "- Análisis", icono: "📊", colors: ['#66BB6A', '#2E7D32'], route: '/dashboard', delay: 250 },
-                  (isAdmin || userPermisos.includes('clientes')) && { titulo: "Clientes", subtitulo: "- Base de datos", icono: "👥", colors: ['#AB47BC', '#6A1B9A'], route: '/clientes', delay: 300 },
-                  (isAdmin || userPermisos.includes('gastos')) && { titulo: "Gastos", subtitulo: "- Flujo de caja", icono: "📉", colors: ['#EF5350', '#C62828'], route: '/gastos', delay: 350 },
-                  (isAdmin || userPermisos.includes('deudas')) && { titulo: "Cuentas x Cobrar", subtitulo: "- Créditos", icono: "🤝", colors: ['#00D4FF', '#3a7bd5'], route: '/deudas', delay: 400 },
-                  (isAdmin || userPermisos.includes('reportes')) && { titulo: "Reportes", subtitulo: "- Informes", icono: "📈", colors: ['#7986CB', '#283593'], route: '/reportes', delay: 450 },
-                  (isAdmin || userPermisos.includes('ajustes')) && { titulo: "Ajustes", subtitulo: "- Configuración", icono: "⚙️", colors: ['#78909C', '#37474F'], route: '/ajustes', delay: 500 }
+                  (isAdmin || userPermisos.includes('ventas')) && { titulo: "Punto de Venta", subtitulo: "- Cobros rápidos", icono: "cash-register", colors: ['#8E2DE2', '#4A00E0'], route: '/pos', delay: 100 },
+                  (isAdmin || userPermisos.includes('inventario')) && { titulo: "Control de Stock", subtitulo: "- Inventario Real", icono: "package-variant-closed", colors: ['#059669', '#064E3B'], route: '/stock', delay: 150 },
+                  (isAdmin || userPermisos.includes('catalogo')) && { titulo: "Catálogo", subtitulo: "- Ver productos", icono: "format-list-bulleted-type", colors: ['#2563EB', '#1E3A8A'], route: '/catalogo', delay: 200 },
+                  (isAdmin || userPermisos.includes('dashboard')) && { titulo: "Métricas", subtitulo: "- Análisis", icono: "chart-box-outline", colors: ['#0891B2', '#164E63'], route: '/dashboard', delay: 250 },
+                  (isAdmin || userPermisos.includes('clientes')) && { titulo: "Clientes", subtitulo: "- Base de datos", icono: "account-group", colors: ['#4F46E5', '#312E81'], route: '/clientes', delay: 300 },
+                  (isAdmin || userPermisos.includes('gastos')) && { titulo: "Gastos", subtitulo: "- Flujo de caja", icono: "wallet-outline", colors: ['#E11D48', '#881337'], route: '/gastos', delay: 350 },
+                  (isAdmin || userPermisos.includes('deudas')) && { titulo: "Cuentas x Cobrar", subtitulo: "- Créditos", icono: "account-cash-outline", colors: ['#D97706', '#78350F'], route: '/deudas', delay: 400 },
+                  (isAdmin || userPermisos.includes('reportes')) && { titulo: "Reportes", subtitulo: "- Informes", icono: "file-chart-outline", colors: ['#7C3AED', '#2E1065'], route: '/reportes', delay: 450 },
+                  (isAdmin || userPermisos.includes('ajustes')) && { titulo: "Ajustes", subtitulo: "- Configuración", icono: "cog", colors: ['#4B5563', '#111827'], route: '/ajustes', delay: 500 }
                 ].filter(Boolean);
 
                 return (availableItems as any).map((item: any, index: number) => (
@@ -292,7 +294,7 @@ export default function Index() {
           <View style={styles.footer}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
               <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: c.info }} />
-              <Text style={[styles.footerTexto, { color: c.textTer }]}>Premium Edition Active</Text>
+              <Text style={[styles.footerTexto, { color: c.textTer }]}>Empower your Business with Pos Pro</Text>
             </View>
             <Text style={[styles.footerTextoSmall, { color: c.textTer, marginTop: 4 }]}>Inventray Versión 1.1.0</Text>
           </View>

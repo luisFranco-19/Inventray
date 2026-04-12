@@ -3,6 +3,7 @@ import {
   View, Text, ScrollView, StyleSheet,
   TouchableOpacity, Dimensions, StatusBar, Modal, Animated as RNAnimated
 } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Swipeable } from 'react-native-gesture-handler';
 import { router, useFocusEffect } from 'expo-router';
@@ -225,7 +226,7 @@ export default function Dashboard() {
       {/* HEADER TIPO PERFIL */}
       <View style={[s.header, { paddingHorizontal: contentPadding }]}>
         <TouchableOpacity style={[s.btnAvatar, { backgroundColor: c.surfaceAlt }]} onPress={goBack}>
-           <Text style={{fontSize: 20}}>🔙</Text>
+           <MaterialCommunityIcons name="arrow-left" size={24} color={c.text} />
         </TouchableOpacity>
         <View style={{ flex: 1, paddingLeft: 12 }}>
           <Text style={[s.headerTitulo, { color: c.text }]}>{biz.nombre}</Text>
@@ -236,7 +237,7 @@ export default function Dashboard() {
         </View>
         <View style={s.headerIcons}>
            <TouchableOpacity style={[s.iconBtn, { backgroundColor: c.surface }]} onPress={() => router.push('/ajustes')}>
-              <Text style={{fontSize: 20}}>⚙️</Text>
+              <MaterialCommunityIcons name="cog" size={24} color={c.text} />
            </TouchableOpacity>
         </View>
       </View>
@@ -260,8 +261,8 @@ export default function Dashboard() {
           </View>
           
           <TouchableOpacity style={[s.metaBadge, { backgroundColor: c.surfaceAlt }]} activeOpacity={1}>
-            <Text style={{fontSize: 16}}>🎯</Text>
-            <Text style={[s.metaBadgeText, { color: c.textSec }]}> ${META_DIA.toLocaleString()} meta {periodo === 'hoy' ? 'diaria' : periodo === 'mes' ? 'del mes' : 'semanal'}</Text>
+            <MaterialCommunityIcons name="target" size={18} color={c.accent} />
+            <Text style={[s.metaBadgeText, { color: c.textSec, marginLeft: 6 }]}> ${META_DIA.toLocaleString()} meta {periodo === 'hoy' ? 'diaria' : periodo === 'mes' ? 'del mes' : 'semanal'}</Text>
             <Text style={{color: c.textSec, marginLeft: 6}}>{pctMeta.toFixed(0)}%</Text>
           </TouchableOpacity>
         </View>
@@ -277,7 +278,7 @@ export default function Dashboard() {
             onPress={() => router.push('/pos')}
           >
             <View style={[s.quickIcon, { backgroundColor: c.softGreen + '30' }]}>
-              <Text style={{fontSize: 20}}>🛍️</Text>
+              <MaterialCommunityIcons name="shopping" size={20} color="#10B981" />
             </View>
             <Text style={[s.quickText, { color: c.textSec }]}>Vender</Text>
           </TouchableOpacity>
@@ -287,7 +288,7 @@ export default function Dashboard() {
             onPress={() => router.push('/stock')}
           >
             <View style={[s.quickIcon, { backgroundColor: c.softOrange + '30' }]}>
-              <Text style={{fontSize: 20}}>📦</Text>
+              <MaterialCommunityIcons name="package-variant" size={20} color="#F59E0B" />
             </View>
             <Text style={[s.quickText, { color: c.textSec }]}>Stock</Text>
           </TouchableOpacity>
@@ -297,7 +298,7 @@ export default function Dashboard() {
             onPress={() => router.push('/clientes')}
           >
             <View style={[s.quickIcon, { backgroundColor: c.softBlue + '30' }]}>
-              <Text style={{fontSize: 20}}>👥</Text>
+              <MaterialCommunityIcons name="account-group" size={20} color="#3B82F6" />
             </View>
             <Text style={[s.quickText, { color: c.textSec }]}>Clientes</Text>
           </TouchableOpacity>
@@ -307,7 +308,7 @@ export default function Dashboard() {
             onPress={() => router.push('/reportes')}
           >
             <View style={[s.quickIcon, { backgroundColor: c.softPurple + '30' }]}>
-              <Text style={{fontSize: 20}}>📊</Text>
+              <MaterialCommunityIcons name="chart-bar" size={20} color="#8B5CF6" />
             </View>
             <Text style={[s.quickText, { color: c.textSec }]}>Reportes</Text>
           </TouchableOpacity>
@@ -316,8 +317,8 @@ export default function Dashboard() {
             style={[s.quickBtn, { backgroundColor: c.surface }]}
             onPress={() => router.push('/gastos')}
           >
-            <View style={[s.quickIcon, { backgroundColor: c.softPink + '30' }]}>
-              <Text style={{fontSize: 20}}>💸</Text>
+            <View style={[s.quickIcon, { backgroundColor: '#FF4B2B' + '30' }]}>
+              <MaterialCommunityIcons name="wallet-outline" size={20} color="#FF4B2B" />
             </View>
             <Text style={[s.quickText, { color: c.textSec }]}>Gastos</Text>
           </TouchableOpacity>
@@ -327,7 +328,7 @@ export default function Dashboard() {
             onPress={() => router.push('/catalogo')}
           >
             <View style={[s.quickIcon, { backgroundColor: c.softPurple + '30' }]}>
-              <Text style={{fontSize: 20}}>📖</Text>
+              <MaterialCommunityIcons name="book-open-variant" size={20} color="#3B82F6" />
             </View>
             <Text style={[s.quickText, { color: c.textSec }]}>Catálogo</Text>
           </TouchableOpacity>
@@ -337,7 +338,7 @@ export default function Dashboard() {
             onPress={() => router.push('/deudas')}
           >
             <View style={[s.quickIcon, { backgroundColor: c.softOrange + '30' }]}>
-              <Text style={{fontSize: 20}}>🤝</Text>
+              <MaterialCommunityIcons name="account-cash-outline" size={20} color="#F59E0B" />
             </View>
             <Text style={[s.quickText, { color: c.textSec }]}>Deudas</Text>
           </TouchableOpacity>
@@ -375,7 +376,8 @@ export default function Dashboard() {
                         style={[s.swipeDeleteBtn, { backgroundColor: c.danger }]}
                         onPress={() => descartarAlerta(a.id)}
                       >
-                         <RNAnimated.Text style={[s.swipeDeleteTxt, { transform: [{ scale: trans }] }]}>🗑️ Borrar</RNAnimated.Text>
+                         <MaterialCommunityIcons name="trash-can" size={20} color="#fff" style={{ marginRight: 4 }} />
+                         <RNAnimated.Text style={[s.swipeDeleteTxt, { transform: [{ scale: trans }] }]}>Borrar</RNAnimated.Text>
                       </TouchableOpacity>
                     );
                   }}
@@ -393,7 +395,7 @@ export default function Dashboard() {
                         <Text style={[s.notiTipo, { color: a.color }]}>{a.tipo}</Text>
                         <Text style={[s.notiMensaje, { color: c.text }]}>{a.mensaje}</Text>
                      </View>
-                     <Text style={{color: c.textTer, fontSize: 18}}>⬅️</Text>
+                     <MaterialCommunityIcons name="chevron-right" size={24} color={c.textTer} />
                   </TouchableOpacity>
                 </Swipeable>
               ))}
@@ -415,7 +417,7 @@ export default function Dashboard() {
                >
                  <View style={s.bentoCardHeader}>
                     <View style={[s.bentoIconCover, { backgroundColor: 'rgba(255,255,255,0.6)' }]}>
-                       <Text style={{fontSize: 24}}>🧾</Text>
+                       <MaterialCommunityIcons name="ticket-percent" size={26} color={c.accent} />
                     </View>
                     <View>
                        <Text style={[s.bentoValue, { color: c.text }]}>{metricas.tickets}</Text>
@@ -435,7 +437,7 @@ export default function Dashboard() {
                   onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
                   activeOpacity={0.9}
                >
-                  <Text style={{fontSize: 22}}>⭐</Text>
+                  <MaterialCommunityIcons name="star" size={26} color={c.accent} />
                   <View>
                     <Text style={[s.bentoValueSmall, { color: c.text }]}>${ticketProm.toFixed(2)}</Text>
                     <Text style={[s.bentoLabelSmall, { color: c.textSec }]}>PROMEDIO</Text>
@@ -449,7 +451,7 @@ export default function Dashboard() {
                   onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
                   activeOpacity={0.9}
                >
-                  <Text style={{fontSize: 22}}>📦</Text>
+                  <MaterialCommunityIcons name="archive" size={26} color={c.accent} />
                   <View>
                     <Text style={[s.bentoValueSmall, { color: c.text }]}>{totalStock}</Text>
                     <Text style={[s.bentoLabelSmall, { color: c.textSec }]}>EN STOCK</Text>
@@ -522,7 +524,7 @@ export default function Dashboard() {
               ventasHoy.slice(0, 5).map((v, i) => (
                 <View key={v.id} style={[s.ventaRowModern, i !== ventasHoy.length -1 && i !== 4 && {borderBottomWidth: 1, borderBottomColor: c.surfaceAlt}]}>
                   <View style={[s.ventaIconWrap, { backgroundColor: c.surfaceAlt }]}>
-                    <Text style={{fontSize: 20}}>🛒</Text>
+                   <MaterialCommunityIcons name="cart-outline" size={22} color={c.text} />
                   </View>
                   <View style={s.ventaInfo}>
                     <Text style={[s.ventaCliente, { color: c.text }]}>{v.clienteNombre}</Text>

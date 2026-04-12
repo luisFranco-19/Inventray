@@ -1,16 +1,22 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import {
   View, Text, TextInput, TouchableOpacity, FlatList,
   StyleSheet, Modal, Alert, ScrollView, StatusBar, Platform, KeyboardAvoidingView,
-  Animated, Easing
+  Animated, Easing, Image
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
+import * as ImagePicker from 'expo-image-picker';
+import { LinearGradient } from 'expo-linear-gradient';
+import { CameraView, useCameraPermissions } from 'expo-camera';
 import { obtenerVariantes, ajustarStock, crearVariante, eliminarVariante, actualizarVariante, type Variante } from '../../../database/variantesDB';
 import { useTheme } from '../../context/ThemeContext';
 import { useBusiness } from '../../context/BusinessContext';
 import { supabase } from '../../lib/supabase';
 import { sizes } from '../../theme';
+import { GuiaAyuda } from '../../components/GuiaAyuda';
+import { useResponsive } from '../../hooks/useResponsive';
 
 const PremiumSpinner = ({ isDark }: { isDark: boolean }) => {
   const rotation = useRef(new Animated.Value(0)).current;
@@ -34,12 +40,6 @@ const PremiumSpinner = ({ isDark }: { isDark: boolean }) => {
     </View>
   );
 };
-import { LinearGradient } from 'expo-linear-gradient';
-import { CameraView, useCameraPermissions } from 'expo-camera';
-import * as ImagePicker from 'expo-image-picker';
-import { Image } from 'react-native';
-import { GuiaAyuda } from '../../components/GuiaAyuda';
-import { useResponsive } from '../../hooks/useResponsive';
 
 type Filtro = 'todos' | 'bajo' | 'agotado';
 
@@ -72,10 +72,10 @@ export default function Inventario() {
   const { isTablet, isLargeTablet, contentPadding, columnWidth } = useResponsive();
 
   const PASOS_GUIA = [
-    { titulo: 'Gestión de Productos', desc: 'Aquí puedes ver, buscar y filtrar toda tu mercancía en tiempo real.', icono: '📦', color: c.info },
-    { titulo: 'Nuevo Producto', desc: `Toca el botón '+' arriba a la derecha para añadir un nuevo artículo al catálogo con su ${biz.labelAtributo1}/${biz.labelAtributo2}.`, icono: '➕', color: c.accent },
-    { titulo: 'Ajustes de Stock', desc: 'Usa el botón "Ajustar" en cada producto para registrar Compras (entrada), Devoluciones o Pérdidas (salida).', icono: '🔄', color: c.warning },
-    { titulo: 'Alertas de Stock', desc: 'Los colores te indican el estado: Verde (Suficiente), Naranja (Bajo) y Rojo (Agotado).', icono: '⚠️', color: c.danger },
+    { titulo: 'Gestión de Productos', desc: 'Aquí puedes ver, buscar y filtrar toda tu mercancía en tiempo real.', icono: 'package-variant', color: c.info },
+    { titulo: 'Nuevo Producto', desc: `Toca el botón '+' arriba a la derecha para añadir un nuevo artículo al catálogo con su ${biz.labelAtributo1}/${biz.labelAtributo2}.`, icono: 'plus', color: c.accent },
+    { titulo: 'Ajustes de Stock', desc: 'Usa el botón "Ajustar" en cada producto para registrar Compras (entrada), Devoluciones o Pérdidas (salida).', icono: 'swap-vertical', color: c.warning },
+    { titulo: 'Alertas de Stock', desc: 'Los colores te indican el estado: Verde (Suficiente), Naranja (Bajo) y Rojo (Agotado).', icono: 'alert-circle', color: c.danger },
   ];
 
   const router = useRouter();
@@ -363,7 +363,7 @@ export default function Inventario() {
       return (
         <View style={{flexDirection: 'row', justifyContent: 'space-between', marginTop: 8, paddingHorizontal: 4, backgroundColor: colorTexto + '1A', paddingVertical: 6, borderRadius: 6}}>
            <Text style={{fontSize: 13, color: colorTexto, fontWeight: '700'}}>
-               💡 {isLoss ? 'Pérdida / Sin Ganancia' : `Ganancia: $${ganancia.toFixed(2)}`}
+               <MaterialCommunityIcons name="lightbulb-outline" size={14} color={colorTexto} /> {isLoss ? 'Pérdida / Sin Ganancia' : `Ganancia: $${ganancia.toFixed(2)}`}
            </Text>
            <Text style={{fontSize: 13, color: colorTexto, fontWeight: '800'}}>
                Margen: {margen.toFixed(1)}%
@@ -394,7 +394,7 @@ export default function Inventario() {
       {/* HEADER TIPO PERFIL */}
       <View style={[st.header, { paddingHorizontal: contentPadding }]}>
         <TouchableOpacity style={[st.btnAvatar, { backgroundColor: c.surfaceAlt }]} onPress={goBack}>
-           <Text style={{fontSize: 20}}>🔙</Text>
+           <MaterialCommunityIcons name="arrow-left" size={24} color={c.text} />
         </TouchableOpacity>
         <View style={{ flex: 1, paddingLeft: 12 }}>
           <Text style={[st.headerTitulo, { color: c.text }]}>Inventario</Text>
@@ -407,10 +407,10 @@ export default function Inventario() {
           style={[st.iconBtn, { backgroundColor: c.surfaceAlt, marginRight: 8 }]} 
           onPress={() => setMostrarGuia(true)}
         >
-          <Text style={{fontSize: 20, color: c.info}}>ℹ️</Text>
+          <MaterialCommunityIcons name="information-outline" size={24} color={c.info} />
         </TouchableOpacity>
         <TouchableOpacity style={[st.iconBtn, { backgroundColor: c.accent }]} onPress={abrirNuevo}>
-           <Text style={{fontSize: 20, color: '#fff', fontWeight: 'bold'}}>+</Text>
+           <MaterialCommunityIcons name="plus" size={24} color="#fff" />
         </TouchableOpacity>
       </View>
 
@@ -434,14 +434,14 @@ export default function Inventario() {
         <LinearGradient colors={isDark ? ['#8E2DE2', '#4A00E0'] : ['#6A11CB', '#2575FC']} start={{x: 0, y: 0}} end={{x: 1, y: 1}} style={st.tarjetaGradient}>
            <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
               <Text style={st.tarjetaLabelGrad}>VALOR ACTUAL</Text>
-              <Text style={{fontSize: 16}}>💰</Text>
+              <MaterialCommunityIcons name="wallet-outline" size={18} color="rgba(255,255,255,0.7)" />
            </View>
            <Text style={st.tarjetaNumGrad} numberOfLines={1}>${valorInventario.toLocaleString()}</Text>
         </LinearGradient>
         
         <View style={[st.tarjetaFlat, { backgroundColor: c.surface, borderColor: c.border, borderWidth: isDark ? 0 : 1 }]}>
            <View style={{flexDirection: 'row', gap: 6, alignItems: 'center'}}>
-              <Text style={{fontSize: 14}}>📦</Text>
+              <MaterialCommunityIcons name="package-variant" size={16} color={c.textTer} />
               <Text style={[st.tarjetaLabelFlat, { color: c.textTer }]}>Vistas</Text>
            </View>
            <Text style={[st.tarjetaNumFlat, { color: c.text }]}>{totalVariantes}</Text>
@@ -449,7 +449,7 @@ export default function Inventario() {
 
         <View style={[st.tarjetaFlat, { backgroundColor: c.surface, borderColor: c.border, borderWidth: isDark ? 0 : 1 }]}>
            <View style={{flexDirection: 'row', gap: 6, alignItems: 'center'}}>
-              <Text style={{fontSize: 14}}>⚠️</Text>
+              <MaterialCommunityIcons name="alert-circle-outline" size={16} color={NARANJA} />
               <Text style={[st.tarjetaLabelFlat, { color: NARANJA }]}>Bajas</Text>
            </View>
            <Text style={[st.tarjetaNumFlat, { color: NARANJA }]}>{stockBajo}</Text>
@@ -457,7 +457,7 @@ export default function Inventario() {
 
         <View style={[st.tarjetaFlat, { backgroundColor: c.surface, borderColor: c.border, borderWidth: isDark ? 0 : 1 }]}>
            <View style={{flexDirection: 'row', gap: 6, alignItems: 'center'}}>
-              <Text style={{fontSize: 14}}>❌</Text>
+              <MaterialCommunityIcons name="close-circle-outline" size={16} color={ROJO} />
               <Text style={[st.tarjetaLabelFlat, { color: ROJO }]}>Agotadas</Text>
            </View>
            <Text style={[st.tarjetaNumFlat, { color: ROJO }]}>{agotadas}</Text>
@@ -503,7 +503,7 @@ export default function Inventario() {
                     <Image source={{ uri: item.imagenUrl }} style={st.cardImage} />
                   ) : (
                     <View style={[st.cardImagePlaceholder, { backgroundColor: c.surfaceAlt }]}>
-                       <Text style={{fontSize: 24, color: c.textTer}}>📦</Text>
+                       <MaterialCommunityIcons name="package-variant" size={24} color={c.textTer} />
                     </View>
                   )}
                   <View style={{flex: 1, paddingRight: 10, justifyContent: 'center'}}>
@@ -526,11 +526,11 @@ export default function Inventario() {
                   </View>
                   <View style={st.cardModernActions}>
                      <TouchableOpacity style={[st.actionBtnRound, { backgroundColor: c.surfaceAlt }]} onPress={() => abrirEditar(item)}>
-                        <Text style={{fontSize: 18}}>✏️</Text>
+                        <MaterialCommunityIcons name="pencil" size={20} color={c.text} />
                      </TouchableOpacity>
                      {!isTablet && (
                        <TouchableOpacity style={[st.actionBtnRound, { backgroundColor: c.surfaceAlt }]} onPress={() => confirmarEliminar(item)}>
-                          <Text style={{fontSize: 18}}>🗑️</Text>
+                          <MaterialCommunityIcons name="trash-can" size={20} color={c.danger} />
                        </TouchableOpacity>
                      )}
                      <TouchableOpacity style={[st.actionBtnPrimary, { backgroundColor: c.text }]} onPress={() => abrirAjuste(item)}>
@@ -609,7 +609,7 @@ export default function Inventario() {
                      <Text style={[st.modalSub, { color: c.textTer, marginBottom: 0 }]}>Modificando {varianteSeleccionada.talla} · {varianteSeleccionada.color}</Text>
                    )}
                  </View>
-                 <TouchableOpacity onPress={() => setModalEditar(false)}><Text style={{fontSize: 24, color: c.textTer}}>✕</Text></TouchableOpacity>
+                 <TouchableOpacity onPress={() => setModalEditar(false)}><MaterialCommunityIcons name="close" size={24} color={c.textTer} /></TouchableOpacity>
               </View>
               
               
@@ -619,7 +619,7 @@ export default function Inventario() {
                    <Image source={{uri: editImagen}} style={st.miniImgPreview} />
                  ) : (
                    <View style={[st.miniImgPreview, { backgroundColor: c.surfaceAlt, alignItems: 'center', justifyContent: 'center' }]}>
-                     <Text style={{fontSize: 24}}>📷</Text>
+                     <MaterialCommunityIcons name="camera" size={24} color={c.textTer} />
                    </View>
                  )}
                  <TouchableOpacity style={[st.chipInfo, { backgroundColor: c.accent, marginLeft: 16 }]} onPress={() => seleccionarImagen('editar')}>
@@ -639,7 +639,7 @@ export default function Inventario() {
               <View style={st.inputRow}>
                  <TextInput style={[st.modalInputForm, { backgroundColor: c.surfaceAlt, color: c.text, flex: 1, paddingRight: 60 }]} placeholder="Escanea o escribe..." placeholderTextColor={c.textTer} value={editCodigo} onChangeText={setEditCodigo} />
                  <TouchableOpacity style={[st.btnScanInside, { backgroundColor: c.accent }]} onPress={() => iniciarEscaneo('editar')}>
-                    <Text style={{fontSize: 20}}>📷</Text>
+                    <MaterialCommunityIcons name="barcode-scan" size={20} color="#fff" />
                  </TouchableOpacity>
               </View>
               
@@ -671,7 +671,7 @@ export default function Inventario() {
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
               <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20}}>
                  <Text style={[st.modalTitulo, { color: c.text, marginBottom: 0 }]}>Nuevo Ingreso</Text>
-                 <TouchableOpacity onPress={() => setModalNuevo(false)}><Text style={{fontSize: 24, color: c.textTer}}>✕</Text></TouchableOpacity>
+                 <TouchableOpacity onPress={() => setModalNuevo(false)}><MaterialCommunityIcons name="close" size={24} color={c.textTer} /></TouchableOpacity>
               </View>
               
               <Text style={[st.modalLabel, { color: c.textSec, marginTop: 0 }]}>Foto del Producto</Text>
@@ -680,7 +680,7 @@ export default function Inventario() {
                    <Image source={{uri: formImagen}} style={st.miniImgPreview} />
                  ) : (
                    <View style={[st.miniImgPreview, { backgroundColor: c.surfaceAlt, alignItems: 'center', justifyContent: 'center' }]}>
-                     <Text style={{fontSize: 24}}>📷</Text>
+                     <MaterialCommunityIcons name="camera" size={24} color={c.textTer} />
                    </View>
                  )}
                  <TouchableOpacity style={[st.chipInfo, { backgroundColor: c.accent, marginLeft: 16 }]} onPress={() => seleccionarImagen('nuevo')}>
@@ -700,7 +700,7 @@ export default function Inventario() {
               <View style={st.inputRow}>
                  <TextInput style={[st.modalInputForm, { backgroundColor: c.surfaceAlt, color: c.text, flex: 1, paddingRight: 60 }]} placeholder="Escanea o escribe..." placeholderTextColor={c.textTer} value={formCodigo} onChangeText={setFormCodigo} />
                  <TouchableOpacity style={[st.btnScanInside, { backgroundColor: c.accent }]} onPress={() => iniciarEscaneo('nuevo')}>
-                    <Text style={{fontSize: 20}}>📷</Text>
+                    <MaterialCommunityIcons name="barcode-scan" size={20} color="#fff" />
                  </TouchableOpacity>
               </View>
 
