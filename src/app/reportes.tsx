@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, StatusBar, ScrollView, Modal, ActivityIndicator, Alert } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useFocusEffect } from 'expo-router';
 import {
@@ -142,23 +143,23 @@ export default function Reportes() {
          {/* HEADER */}
          <View style={[st.header, { paddingHorizontal: contentPadding }]}>
             <TouchableOpacity style={[st.btnAvatar, { backgroundColor: c.surfaceAlt }]} onPress={goBack}>
-               <Text style={{ fontSize: 20 }}>🔙</Text>
+               <MaterialCommunityIcons name="arrow-left" size={24} color={c.text} />
             </TouchableOpacity>
             <View style={{ flex: 1, paddingLeft: 12 }}>
                <Text style={[st.headerTitulo, { color: c.text }]}>Inteligencia de Negocio</Text>
                <Text style={[{ fontSize: sizes.fontXs, color: c.textTer }]}>Reportes financieros y rendimiento</Text>
             </View>
-            <TouchableOpacity
-               style={[st.btnHelp, { backgroundColor: c.surfaceAlt, marginRight: 8 }]}
-               onPress={() => setMostrarGuia(true)}
-            >
-               <Text style={{ fontSize: 18, color: c.info }}>ℹ️</Text>
-            </TouchableOpacity>
+            <TouchableOpacity 
+          style={[st.iconBtn, { backgroundColor: c.surfaceAlt, marginRight: 8 }]} 
+          onPress={() => setMostrarGuia(true)}
+        >
+          <MaterialCommunityIcons name="information-outline" size={24} color={c.info} />
+        </TouchableOpacity>
             <TouchableOpacity
                style={[st.btnAnalytics, { backgroundColor: c.accent }]}
                onPress={abrirAnalytics}
             >
-               <Text style={{ fontSize: 20 }}>📈</Text>
+               <MaterialCommunityIcons name="chart-line" size={24} color="#fff" />
             </TouchableOpacity>
          </View>
 
@@ -249,17 +250,17 @@ export default function Reportes() {
                         </View>
                      </View>
 
-                     <View style={{ flex: 1 }}>
-                        <Text style={[st.seccionTitulo, { color: c.textSec, paddingHorizontal: 0 }]}>COBROS HOY</Text>
-                        <View style={[st.panelCard, { backgroundColor: c.surface }]}>
-                           {Object.keys(ventasMetodo).length > 0 ? Object.entries(ventasMetodo).map(([m, v], i) => (
-                              <View key={m} style={[st.itemModern, i !== Object.entries(ventasMetodo).length - 1 && { borderBottomWidth: 1, borderBottomColor: c.surfaceAlt }]}>
-                                 <Text style={[st.itemModNombre, { color: c.text }]} numberOfLines={1}>{m}</Text>
-                                 <Text style={[st.itemModMetrica, { color: c.info }]}>{((v / (ventasPeriodo.hoy.total || 1)) * 100).toFixed(0)}%</Text>
-                              </View>
-                           )) : <Text style={[st.textoVacio, { color: c.textSec }]}>No hay data.</Text>}
-                        </View>
-                     </View>
+                      <View style={{ flex: 1 }}>
+                         <Text style={[st.seccionTitulo, { color: c.textSec, paddingHorizontal: 0 }]}>COBROS HOY</Text>
+                         <View style={[st.panelCard, { backgroundColor: c.surface }]}>
+                            {Object.keys(ventasMetodo).length > 0 ? Object.entries(ventasMetodo).map(([m, v], i) => (
+                               <View key={m} style={[st.itemModern, i !== Object.entries(ventasMetodo).length - 1 && { borderBottomWidth: 1, borderBottomColor: c.surfaceAlt }]}>
+                                  <Text style={[st.itemModNombre, { color: c.text }]} numberOfLines={1}>{m}</Text>
+                                  <Text style={[st.itemModMetrica, { color: c.info }]}>{((v / Math.max(ventasPeriodo.hoy.total, 1)) * 100).toFixed(0)}%</Text>
+                               </View>
+                            )) : <Text style={[st.textoVacio, { color: c.textSec }]}>No hay cobros registrados hoy.</Text>}
+                         </View>
+                      </View>
                   </View>
 
                   {/* INVENTARIO */}
@@ -307,7 +308,7 @@ export default function Reportes() {
                <SafeAreaView style={{ flex: 1 }}>
                   <View style={st.modalHeader}>
                      <TouchableOpacity style={[st.btnCerrarDesc, { backgroundColor: c.surfaceAlt }]} onPress={() => setModalAnalytics(false)}>
-                        <Text style={{ fontSize: 20 }}>🔙</Text>
+                        <MaterialCommunityIcons name="arrow-left" size={24} color={c.text} />
                      </TouchableOpacity>
                      <View style={{ flex: 1, alignItems: 'center' }}>
                         <Text style={[st.modalTitle, { color: c.text }]}>Análisis Visual</Text>

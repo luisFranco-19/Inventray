@@ -218,23 +218,29 @@ export async function obtenerMetricasFinancieras(periodo: 'hoy' | 'semana' | 'me
   const tenantId = await getTenantId();
   const limite = getFiltoRango(periodo);
 
+  // 1. Ingresos y Costos de Ventas
+  // Seleccionamos directamente de venta para obtener el total real (con descuentos) 
+  // y sumamos los costos de los detalles.
   const { data: vData } = await supabase
-    .from('detalle_venta')
-    .select('subtotal, cantidad, costo_unitario, venta!inner(estado, fecha)')
+    .from('venta')
+    .select('total, detalle_venta ( cantidad, costo_unitario )')
     .eq('negocio_id', tenantId)
-    .eq('venta.estado', 'completada')
-    .gte('venta.fecha', limite.toISOString());
+    .eq('estado', 'completada')
+    .gte('fecha', limite.toISOString());
 
   let ingresos = 0;
   let costoVentas = 0;
   
   if (vData) {
-    vData.forEach((d: any) => {
-      ingresos += d.subtotal;
-      costoVentas += d.cantidad * d.costo_unitario;
+    vData.forEach((v: any) => {
+      ingresos += (v.total || 0);
+      (v.detalle_venta || []).forEach((d: any) => {
+        costoVentas += (d.cantidad || 0) * (d.costo_unitario || 0);
+      });
     });
   }
 
+  // 2. Pérdida por Merma
   const { data: mData } = await supabase
     .from('movimiento_inventario')
     .select('cantidad, variante!inner(costo)')
@@ -246,7 +252,7 @@ export async function obtenerMetricasFinancieras(periodo: 'hoy' | 'semana' | 'me
   let perdidaMerma = 0;
   if (mData) {
     mData.forEach((m: any) => {
-      perdidaMerma += m.cantidad * m.variante.costo;
+      perdidaMerma += (m.cantidad || 0) * (m.variante?.costo || 0);
     });
   }
 
@@ -291,22 +297,32 @@ export async function obtenerHistoricoMetricas(periodo: 'hoy' | 'semana' | 'mes'
 
     ventas.forEach((v: any) => {
        const d = new Date(v.fecha);
-       const h = d.getHours();
-       timeline[h].ingresos += v.total;
-       
-       const costo = (v.detalle_venta || []).reduce((acc: number, dv: any) => acc + (dv.cantidad * dv.costo_unitario), 0);
-       timeline[h].utilidad += (v.total - costo);
+       const h = d.getHours(); // Local hour
+       if (timeline[h]) {
+         timeline[h].ingresos += (v.total || 0);
+         const costo = (v.detalle_venta || []).reduce((acc: number, dv: any) => acc + (dv.cantidad * (dv.costo_unitario || 0)), 0);
+         timeline[h].utilidad += ((v.total || 0) - costo);
+       }
+    });
+
+    mermas.forEach((m: any) => {
+      const d = new Date(m.fecha);
+      const h = d.getHours();
+      if (timeline[h]) {
+        timeline[h].mermas += (m.cantidad || 0) * (m.variante?.costo || 0);
+        timeline[h].utilidad -= (m.cantidad || 0) * (m.variante?.costo || 0);
+      }
     });
 
     return Object.values(timeline);
   } else {
     const timeline: Record<string, any> = {};
-    const tzOffset = (new Date()).getTimezoneOffset() * 60000;
     
-    // Rellenar días en blanco
+    // Rellenar días en blanco de forma robusta
     const diasTotal = periodo === 'semana' ? 6 : 29;
     for (let i = diasTotal; i >= 0; i--) {
-       const d = new Date(Date.now() - i * 86400000 - tzOffset);
+       const d = new Date();
+       d.setDate(d.getDate() - i);
        const m = String(d.getMonth() + 1).padStart(2,'0');
        const day = String(d.getDate()).padStart(2,'0');
        const k = `${d.getFullYear()}-${m}-${day}`;
@@ -315,7 +331,9 @@ export async function obtenerHistoricoMetricas(periodo: 'hoy' | 'semana' | 'mes'
 
     ventas.forEach((v: any) => {
        if (!v.fecha) return;
-       const k = v.fecha.split('T')[0];
+       const d = new Date(v.fecha);
+       const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+       
        if (timeline[k]) {
           timeline[k].ingresos += (v.total || 0);
           const costo = (v.detalle_venta || []).reduce((acc: number, dv: any) => acc + (dv.cantidad * (dv.costo_unitario || 0)), 0);
@@ -325,9 +343,13 @@ export async function obtenerHistoricoMetricas(periodo: 'hoy' | 'semana' | 'mes'
 
     mermas.forEach((m: any) => {
        if (!m.fecha) return;
-       const k = m.fecha.split('T')[0];
+       const d = new Date(m.fecha);
+       const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+       
        if (timeline[k]) {
-          timeline[k].mermas += (m.cantidad || 0) * (m.variante?.costo || 0);
+          const loss = (m.cantidad || 0) * (m.variante?.costo || 0);
+          timeline[k].mermas += loss;
+          timeline[k].utilidad -= loss;
        }
     });
 
