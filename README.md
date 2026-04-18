@@ -13,9 +13,11 @@
 - 🛍️ **POS Optimizado:** Realiza ventas en segundos con soporte para diversos métodos de pago (Efectivo, Tarjeta, Transferencia).
 - 📦 **Control de Inventario:** Gestión de variantes, seguimiento de stock y alertas automáticas de resurtido.
 - 👥 **Clientes y Deudas:** Panel dedicado para la gestión de cartera y cuentas por cobrar.
+- 🤝 **Gestión de Proveedores:** Base de datos de proveedores con persistencia, conexión directa por WhatsApp y control ágil de contactos.
 - 💸 **Control de Gastos:** Registro detallado de egresos para un balance real de beneficios.
 - 📈 **Reportería Avanzada:** Análisis de productos más vendidos y desempeño por periodos.
 - 🌓 **Tema Dinámico:** Soporte completo para Modo Oscuro y Claro con estética Minimalista.
+- 📱 **Diseño Responsivo:** Interfaz adaptable fluidamente a móviles y tablets.
 
 ## 🛠️ Stack Tecnológico
 
