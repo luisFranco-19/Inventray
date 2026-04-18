@@ -109,11 +109,16 @@ export async function obtenerVentasHoy(): Promise<VentaResumen[]> {
   });
 }
 
-function getFiltoRango(periodo: 'hoy' | 'semana' | 'mes'): Date {
+function getFiltroRango(periodo: 'hoy' | 'semana' | 'mes'): Date {
   const date = new Date();
-  if (periodo === 'semana') date.setDate(date.getDate() - 6);
-  if (periodo === 'mes') date.setDate(date.getDate() - 29);
-  date.setHours(0,0,0,0);
+  if (periodo === 'semana') {
+    date.setDate(date.getDate() - 7);
+  } else if (periodo === 'mes') {
+    date.setDate(date.getDate() - 29);
+  }
+  
+  // Establecer al inicio del día (00:00:00 local)
+  date.setHours(0, 0, 0, 0);
   return date;
 }
 
@@ -121,7 +126,7 @@ export async function obtenerVentasPorPeriodo(
   periodo: 'hoy' | 'semana' | 'mes'
 ): Promise<{ total: number; tickets: number }> {
   const tenantId = await getTenantId();
-  const limite = getFiltoRango(periodo);
+  const limite = getFiltroRango(periodo);
 
   const { data, error } = await supabase
     .from('venta')
@@ -216,7 +221,7 @@ export async function varianteTieneVentas(varianteId: number): Promise<boolean> 
 
 export async function obtenerMetricasFinancieras(periodo: 'hoy' | 'semana' | 'mes') {
   const tenantId = await getTenantId();
-  const limite = getFiltoRango(periodo);
+  const limite = getFiltroRango(periodo);
 
   // 1. Ingresos y Costos de Ventas
   // Seleccionamos directamente de venta para obtener el total real (con descuentos) 
@@ -269,7 +274,7 @@ export async function obtenerMetricasFinancieras(periodo: 'hoy' | 'semana' | 'me
 
 export async function obtenerHistoricoMetricas(periodo: 'hoy' | 'semana' | 'mes'): Promise<any[]> {
   const tenantId = await getTenantId();
-  const limite = getFiltoRango(periodo);
+  const limite = getFiltroRango(periodo);
 
   const { data: vData } = await supabase
     .from('venta')
@@ -355,4 +360,4 @@ export async function obtenerHistoricoMetricas(periodo: 'hoy' | 'semana' | 'mes'
 
     return Object.values(timeline).sort((a,b) => (a as any).rawKey.localeCompare((b as any).rawKey));
   }
-}
+}
