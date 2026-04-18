@@ -52,44 +52,44 @@ export type ThemeColors = {
 // ─── Paleta clara ─────────────────────────────────────────────────────────────
 
 export const light: ThemeColors = {
-  bg: '#F7F5F0',
+  bg: '#F8FAFC',
   surface: '#FFFFFF',
-  surfaceAlt: '#F0EDE8',
-  text: '#1A1A1A',
-  textSec: '#4A4A4A',
-  textTer: '#8A8A8A',
-  border: '#E2DFDA',
-  accent: '#2D6A4F',
-  danger: '#B5303A',
-  warning: '#B45309',
-  info: '#1D4ED8',
-  purple: '#7C3AED',
-  softBlue: '#E0F2FE', // Cielo muy suave
-  softOrange: '#FFF7ED', // Naranja/Crema muy suave
-  softGreen: '#F0FDF4', // Menta muy suave
-  softPurple: '#F5F3FF', // Lavanda muy suave
-  softYellow: '#FEFCE8', // Limón muy suave
-  softPink: '#FDF2F8', // Rosa muy suave
-  softCyan: '#ECFEFF', // Cyan muy suave
+  surfaceAlt: '#E2E8F0',
+  text: '#0F172A',
+  textSec: '#334155',
+  textTer: '#64748B',
+  border: '#E2E8F0',
+  accent: '#10B981', // Verde Esmeralda dinámico
+  danger: '#EF4444',
+  warning: '#F59E0B',
+  info: '#3B82F6',
+  purple: '#8B5CF6',
+  softBlue: '#E0F2FE',
+  softOrange: '#FFF7ED',
+  softGreen: '#F0FDF4',
+  softPurple: '#F5F3FF',
+  softYellow: '#FEFCE8',
+  softPink: '#FDF2F8',
+  softCyan: '#ECFEFF',
   statusBar: 'dark-content',
 };
 
-// ─── Paleta oscura ────────────────────────────────────────────────────────────
+// ─── Paleta oscura (Premium) ──────────────────────────────────────────────────
 
 export const dark: ThemeColors = {
-  bg: '#0B141A',          // WhatsApp dark background
-  surface: '#111B21',     // WhatsApp appbar/panel color
-  surfaceAlt: '#202C33',  // WhatsApp input/bubble color
-  text: '#E9EDEF',        // WhatsApp primary text
-  textSec: '#8696A0',     // WhatsApp secondary text
-  textTer: '#667781',     // WhatsApp tertiary text
-  border: '#2A3942',      // WhatsApp divider
-  accent: '#00A884',      // WhatsApp Green Accent
-  danger: '#F15C6D',      // Softer red for WhatsApp theme
-  warning: '#FFD279',
-  info: '#53BDEB',        // WhatsApp blue tick color
-  purple: '#BF5AF2',
-  softBlue: '#0C1A21',
+  bg: '#020617',          
+  surface: '#0F172A',     
+  surfaceAlt: '#1E293B',  
+  text: '#F8FAFC',        
+  textSec: '#CBD5E1',     
+  textTer: '#94A3B8',     
+  border: '#1E293B',      
+  accent: '#34D399', // Verde Esmeralda para oscuridad      
+  danger: '#F87171',      // Soft red
+  warning: '#FBBF24',
+  info: '#60A5FA',        // Light blue
+  purple: '#A78BFA',
+  softBlue: '#0F172A',
   softOrange: '#1A1410',
   softGreen: '#0E1A11',
   softPurple: '#15111A',

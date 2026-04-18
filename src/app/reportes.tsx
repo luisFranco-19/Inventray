@@ -97,9 +97,30 @@ export default function Reportes() {
          setVentasMetodo(vMet);
          
          setMetricasFin({
-            hoy: { ...mHoy, gastos: gHoy, gananciaNeta: (mHoy?.gananciaNeta || 0) - gHoy },
-            semana: { ...mSemana, gastos: gSemana, gananciaNeta: (mSemana?.gananciaNeta || 0) - gSemana },
-            mes: { ...mMes, gastos: gMes, gananciaNeta: (mMes?.gananciaNeta || 0) - gMes },
+            hoy: { 
+              ingresos: mHoy?.ingresos || 0,
+              costoVentas: mHoy?.costoVentas || 0,
+              gananciaBruta: mHoy?.gananciaBruta || 0,
+              perdidaMerma: mHoy?.perdidaMerma || 0,
+              gastos: gHoy, 
+              gananciaNeta: (mHoy?.gananciaNeta || 0) - gHoy 
+            },
+            semana: { 
+              ingresos: mSemana?.ingresos || 0,
+              costoVentas: mSemana?.costoVentas || 0,
+              gananciaBruta: mSemana?.gananciaBruta || 0,
+              perdidaMerma: mSemana?.perdidaMerma || 0,
+              gastos: gSemana, 
+              gananciaNeta: (mSemana?.gananciaNeta || 0) - gSemana 
+            },
+            mes: { 
+              ingresos: mMes?.ingresos || 0,
+              costoVentas: mMes?.costoVentas || 0,
+              gananciaBruta: mMes?.gananciaBruta || 0,
+              perdidaMerma: mMes?.perdidaMerma || 0,
+              gastos: gMes, 
+              gananciaNeta: (mMes?.gananciaNeta || 0) - gMes 
+            },
          });
          
          setStockTotal(variantes.reduce((s, v) => s + (v.stock || 0), 0));
@@ -150,11 +171,11 @@ export default function Reportes() {
                <Text style={[{ fontSize: sizes.fontXs, color: c.textTer }]}>Reportes financieros y rendimiento</Text>
             </View>
             <TouchableOpacity 
-          style={[st.iconBtn, { backgroundColor: c.surfaceAlt, marginRight: 8 }]} 
-          onPress={() => setMostrarGuia(true)}
-        >
-          <MaterialCommunityIcons name="information-outline" size={24} color={c.info} />
-        </TouchableOpacity>
+              style={[st.ayudaBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#F1F5F9', marginRight: 10 }]} 
+              onPress={() => setMostrarGuia(true)}
+            >
+              <MaterialCommunityIcons name="information-outline" size={24} color="#60A5FA" />
+            </TouchableOpacity>
             <TouchableOpacity
                style={[st.btnAnalytics, { backgroundColor: c.accent }]}
                onPress={abrirAnalytics}
@@ -223,10 +244,10 @@ export default function Reportes() {
                            <Text style={[st.rentLabel, { color: c.textSec }]}>Gastos Operativos</Text>
                            <Text style={[st.rentValue, { color: c.danger }]}>-${metricasFin[periodoGlobal].gastos.toLocaleString()}</Text>
                         </View>
-                        <View style={[st.rentDivider, { backgroundColor: c.surfaceAlt }]} />
+                        <View style={[st.rentDivider, { backgroundColor: c.border }]} />
                         <View style={st.rentRow}>
                            <Text style={[st.rentLabelFinal, { color: c.text }]}>UTILIDAD NETA</Text>
-                           <Text style={[st.rentValueFinal, { color: '#34C759' }]}>${(metricasFin[periodoGlobal]?.gananciaNeta || 0).toLocaleString()}</Text>
+                           <Text style={[st.rentValueFinal, { color: c.success }]}>${(metricasFin[periodoGlobal]?.gananciaNeta || 0).toLocaleString()}</Text>
                         </View>
                      </View>
                   </View>
@@ -256,7 +277,7 @@ export default function Reportes() {
                             {Object.keys(ventasMetodo).length > 0 ? Object.entries(ventasMetodo).map(([m, v], i) => (
                                <View key={m} style={[st.itemModern, i !== Object.entries(ventasMetodo).length - 1 && { borderBottomWidth: 1, borderBottomColor: c.surfaceAlt }]}>
                                   <Text style={[st.itemModNombre, { color: c.text }]} numberOfLines={1}>{m}</Text>
-                                  <Text style={[st.itemModMetrica, { color: c.info }]}>{((v / Math.max(ventasPeriodo.hoy.total, 1)) * 100).toFixed(0)}%</Text>
+                                  <Text style={[st.itemModMetrica, { color: c.info }]}>{((v / Math.max(ventasPeriodo[periodoGlobal].total, 1)) * 100).toFixed(0)}%</Text>
                                </View>
                             )) : <Text style={[st.textoVacio, { color: c.textSec }]}>No hay cobros registrados hoy.</Text>}
                          </View>
@@ -346,7 +367,7 @@ export default function Reportes() {
                         </View>
                         <View style={[st.metResCard, { backgroundColor: c.surface }]}>
                            <Text style={[st.metResLabel, { color: c.textTer }]}>Utilidad Neta</Text>
-                           <Text style={[st.metResVal, { color: '#34C759' }]}>${datosGrafica.reduce((s, d) => s + d.utilidad, 0).toLocaleString()}</Text>
+                           <Text style={[st.metResVal, { color: c.success }]}>${datosGrafica.reduce((s, d) => s + d.utilidad, 0).toLocaleString()}</Text>
                         </View>
                      </View>
                   </ScrollView>
@@ -371,7 +392,7 @@ const st = StyleSheet.create({
    root: { flex: 1 },
    header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 10, paddingBottom: 16 },
    btnAvatar: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
-   btnHelp: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
+    ayudaBtn: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
    headerTitulo: { fontSize: sizes.fontLg, fontWeight: '800' },
    contenido: { flex: 1 },
    seccion: { marginBottom: 24 },

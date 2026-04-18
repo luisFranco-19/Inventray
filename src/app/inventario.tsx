@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, FlatList,
   StyleSheet, Modal, Alert, ScrollView, StatusBar, Platform, KeyboardAvoidingView,
+  Animated as RNAnimated,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -17,13 +18,15 @@ import * as ImagePicker from 'expo-image-picker';
 import { Image } from 'react-native';
 import { GuiaAyuda } from '../components/GuiaAyuda';
 import { useResponsive } from '../hooks/useResponsive';
+import { subirImagen } from '../lib/storage';
 
 type Filtro = 'todos' | 'bajo' | 'agotado';
 
 function BarraProgreso({ valor, maximo, color, isDark }: { valor: number; maximo: number; color: string, isDark: boolean }) {
+  const { colors: c } = useTheme();
   const pct = maximo > 0 ? Math.min((valor / maximo) * 100, 100) : 0;
   return (
-    <View style={{ height: 6, backgroundColor: isDark ? '#333333' : '#E2DFDA', borderRadius: 6, overflow: 'hidden', marginTop: 10 }}>
+    <View style={{ height: 6, backgroundColor: isDark ? c.surfaceAlt : '#E2DFDA', borderRadius: 6, overflow: 'hidden', marginTop: 10 }}>
       <View style={{ width: `${pct}%`, height: '100%', backgroundColor: color, borderRadius: 6 }} />
     </View>
   );
@@ -44,6 +47,16 @@ export default function Inventario() {
   const [datos, setDatos] = useState<Variante[]>([]);
   const [mostrarGuia, setMostrarGuia] = useState(false);
   const { isTablet, isLargeTablet, contentPadding, columnWidth } = useResponsive();
+  const pulseAnim = React.useRef(new RNAnimated.Value(1)).current;
+
+  useEffect(() => {
+    RNAnimated.loop(
+      RNAnimated.sequence([
+        RNAnimated.timing(pulseAnim, { toValue: 1.5, duration: 1000, useNativeDriver: true }),
+        RNAnimated.timing(pulseAnim, { toValue: 1, duration: 1000, useNativeDriver: true })
+      ])
+    ).start();
+  }, [pulseAnim]);
 
   const PASOS_GUIA = [
     { titulo: 'Gestión de Productos', desc: 'Aquí puedes ver, buscar y filtrar toda tu mercancía en tiempo real.', icono: 'package-variant', color: c.info },
@@ -103,22 +116,34 @@ export default function Inventario() {
   }, [cargarDatos]));
 
   useEffect(() => {
-    if (!tenantId || !realtimeEnabled) return;
+    if (!tenantId) return;
 
-    const channel = supabase
-      .channel(`inventario_realtime_${tenantId}`)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'variante', filter: `negocio_id=eq.${tenantId}` },
-        () => {
-          console.log('[Realtime] Cambio detectado en inventario, recargando...');
-          cargarDatos();
-        }
-      )
-      .subscribe();
+    // 1. Polling condicional (mismo comportamiento que en PV)
+    const pollingInterval = realtimeEnabled ? 3000 : 15000;
+    const interval = setInterval(() => {
+      console.log('[Polling Inventario] Refrescando datos...');
+      cargarDatos();
+    }, pollingInterval);
+
+    // 2. REALTIME (Escucha cambios en variantes)
+    let channel: any = null;
+    if (realtimeEnabled) {
+      channel = supabase
+        .channel(`inventario_realtime_${tenantId}`)
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'variante', filter: `negocio_id=eq.${tenantId}` },
+          () => {
+            console.log('[Realtime Inventario] Cambio detectado, recargando...');
+            cargarDatos();
+          }
+        )
+        .subscribe();
+    }
 
     return () => {
-      supabase.removeChannel(channel);
+      clearInterval(interval);
+      if (channel) supabase.removeChannel(channel);
     };
   }, [tenantId, cargarDatos, realtimeEnabled]);
 
@@ -184,7 +209,14 @@ export default function Inventario() {
 
     const ejecutar = async () => {
       try {
-        await crearVariante(formNombre, formTalla, formColor, precio, costo, stock, stockMin, formCodigo.trim() ? formCodigo.trim() : undefined, formImagen || undefined);
+        let finalImageUrl = formImagen || undefined;
+        
+        // Si hay una imagen local, subirla a la nube
+        if (formImagen && (formImagen.startsWith('file://') || formImagen.startsWith('content://'))) {
+           finalImageUrl = await subirImagen(formImagen, tenantId!);
+        }
+
+        await crearVariante(formNombre, formTalla, formColor, precio, costo, stock, stockMin, formCodigo.trim() ? formCodigo.trim() : undefined, finalImageUrl);
         Alert.alert('Guardado', `${formNombre} (${formTalla} / ${formColor}) agregado.`);
         setModalNuevo(false); await cargarDatos();
       } catch (e: any) {
@@ -224,7 +256,14 @@ export default function Inventario() {
 
     const ejecutar = async () => {
       try {
-        await actualizarVariante(varianteSeleccionada.id, editNombre, precio, costo, stockMin, editCodigo.trim() ? editCodigo.trim() : undefined, editImagen || undefined);
+        let finalImageUrl = editImagen || undefined;
+
+        // Si la imagen es local (nueva selección), subirla
+        if (editImagen && (editImagen.startsWith('file://') || editImagen.startsWith('content://'))) {
+           finalImageUrl = await subirImagen(editImagen, tenantId!);
+        }
+
+        await actualizarVariante(varianteSeleccionada.id, editNombre, precio, costo, stockMin, editCodigo.trim() ? editCodigo.trim() : undefined, finalImageUrl);
         setModalEditar(false); await cargarDatos();
         Alert.alert('Actualizado', 'Producto actualizado correctamente.');
       } catch (e: any) {
@@ -286,9 +325,9 @@ export default function Inventario() {
     setModalScan(false);
   };
 
-  const VERDE = c.info, NARANJA = c.warning, ROJO = c.danger;
+  const VERDE = '#10B981', NARANJA = '#F59E0B', ROJO = '#EF4444';
   const colorStock = (v: Variante) => v.stock === 0 ? ROJO : v.stock <= v.stockMinimo ? NARANJA : VERDE;
-  const etiquetaStock = (v: Variante) => v.stock === 0 ? 'AGOTADO' : v.stock <= v.stockMinimo ? 'BAJO' : 'STOCK FULL';
+  const etiquetaStock = (v: Variante) => v.stock === 0 ? 'AGOTADO' : v.stock <= v.stockMinimo ? 'BAJO' : 'ÓPTIMO';
 
   const motivosPorTipo = tipoAjuste === 'entrada'
     ? [{ k: 'compra', l: 'Compra' }, { k: 'devolucion', l: 'Devolución' }, { k: 'ajuste', l: 'Ajuste' }]
@@ -328,12 +367,16 @@ export default function Inventario() {
         </TouchableOpacity>
         <View style={{ flex: 1, paddingLeft: 12 }}>
           <Text style={[st.headerTitulo, { color: c.text }]}>Inventario</Text>
+          <View style={{flexDirection: 'row', alignItems: 'center', gap: 6}}>
+             <RNAnimated.View style={{width: 7, height: 7, borderRadius: 4, backgroundColor: '#4CAF50', transform: [{ scale: pulseAnim }]}} />
+             <Text style={{fontSize: 10, color: c.textTer, fontWeight: '700', letterSpacing: 0.5}}>EN VIVO</Text>
+          </View>
         </View>
         <TouchableOpacity 
-          style={[st.iconBtn, { backgroundColor: st.surfaceAlt, marginRight: 8 }]} 
+          style={[st.iconBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#F1F5F9', marginRight: 10 }]} 
           onPress={() => setMostrarGuia(true)}
         >
-          <MaterialCommunityIcons name="information-outline" size={24} color={c.info} />
+          <MaterialCommunityIcons name="information-outline" size={24} color="#60A5FA" />
         </TouchableOpacity>
         <TouchableOpacity style={[st.iconBtn, { backgroundColor: c.accent }]} onPress={abrirNuevo}>
            <MaterialCommunityIcons name="plus" size={24} color="#fff" />
@@ -357,10 +400,15 @@ export default function Inventario() {
         contentContainerStyle={[st.resumenContainer, { paddingHorizontal: contentPadding }]}
       >
         
-        <LinearGradient colors={isDark ? ['#8E2DE2', '#4A00E0'] : ['#6A11CB', '#2575FC']} start={{x: 0, y: 0}} end={{x: 1, y: 1}} style={st.tarjetaGradient}>
+        <LinearGradient 
+          colors={['#0f0ff0', '#4A00E0']} 
+          start={{x: 0, y: 0}} 
+          end={{x: 1, y: 1}} 
+          style={st.tarjetaGradient}
+        >
            <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
-              <Text style={st.tarjetaLabelGrad}>VALOR ACTUAL</Text>
-              <MaterialCommunityIcons name="wallet" size={18} color="rgba(255,255,255,0.7)" />
+              <Text style={st.tarjetaLabelGrad}>VALOR TOTAL</Text>
+              <MaterialCommunityIcons name="currency-usd" size={18} color="rgba(255,255,255,0.7)" />
            </View>
            <Text style={st.tarjetaNumGrad} numberOfLines={1}>${valorInventario.toLocaleString()}</Text>
         </LinearGradient>
@@ -423,7 +471,7 @@ export default function Inventario() {
           const color = colorStock(item);
           const maxBarra = Math.max(item.stock, item.stockMinimo * 4, 1);
           return (
-            <View style={[st.cardModern, { backgroundColor: c.surface, flex: isTablet ? 1 : 0 }]}>
+            <View style={[st.cardModern, { backgroundColor: c.surface, borderColor: c.border, flex: isTablet ? 1 : 0 }]}>
                <View style={st.cardModernHeader}>
                   {item.imagenUrl ? (
                     <Image source={{ uri: item.imagenUrl }} style={st.cardImage} />
@@ -486,7 +534,7 @@ export default function Inventario() {
                      key={t} 
                      style={[st.opcionBtn, { backgroundColor: tipoAjuste === t ? c.accent : c.surfaceAlt }]}
                      onPress={() => { setTipoAjuste(t); setMotivoAjuste(t === 'entrada' ? 'compra' : 'ajuste'); }}>
-                    <Text style={[st.opcionBtnText, { color: tipoAjuste === t ? '#fff' : c.textSec }]}>{t.charAt(0).toUpperCase() + t.slice(1)}</Text>
+                     <Text style={[st.opcionBtnText, { color: tipoAjuste === t ? '#fff' : c.textSec }]}>{t === 'entrada' ? 'Entrada (+)' : 'Salida (-)'}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -738,15 +786,30 @@ const st = StyleSheet.create({
   tarjetaLabelGrad: { color: 'rgba(255,255,255,0.8)', fontSize: 10, fontWeight: '800', letterSpacing: 1 },
   tarjetaNumGrad: { color: '#fff', fontSize: sizes.font3xl, fontWeight: '900', letterSpacing: -1 },
   
-  tarjetaFlat: { width: 130, height: 110, borderRadius: sizes.radiusXl, padding: 20, justifyContent: 'space-between', elevation: 2, shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 4, shadowOffset: { width: 0, height: 2 } },
-  tarjetaLabelFlat: { fontSize: 11, fontWeight: '700', letterSpacing: 0.5 },
-  tarjetaNumFlat: { fontSize: sizes.font2xl, fontWeight: '900' },
+  tarjetaFlat: { 
+    width: 130, 
+    height: 110, 
+    borderRadius: sizes.radiusLg, 
+    padding: 20, 
+    justifyContent: 'space-between', 
+    borderWidth: 1,
+    elevation: 0, 
+    shadowOpacity: 0 
+  },
+  tarjetaLabelFlat: { fontSize: 11, fontWeight: '800', letterSpacing: 0.5, textTransform: 'uppercase', opacity: 0.7 },
+  tarjetaNumFlat: { fontSize: sizes.font2xl, fontWeight: '900', letterSpacing: -1 },
 
   filtrosContainer: { flexDirection: 'row', gap: 10, paddingHorizontal: 24, paddingBottom: 4, paddingTop: 5, zIndex: 10 },
   filtroBtn: { paddingHorizontal: 18, paddingVertical: 10, borderRadius: sizes.radiusFull },
   filtroBtnText: { fontSize: sizes.fontSm, fontWeight: '700' },
 
-  cardModern: { borderRadius: sizes.radiusXl, padding: 20, elevation: 2, shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 6, shadowOffset: { width: 0, height: 2 } },
+  cardModern: { 
+    borderRadius: sizes.radiusLg, 
+    padding: 16, 
+    borderWidth: 1,
+    borderColor: 'rgba(128,128,128,0.05)',
+    elevation: 0, 
+  },
   cardModernHeader: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 },
   cardImage: { width: 50, height: 50, borderRadius: sizes.radiusMd, marginRight: 12 },
   cardImagePlaceholder: { width: 50, height: 50, borderRadius: sizes.radiusMd, marginRight: 12, alignItems: 'center', justifyContent: 'center' },

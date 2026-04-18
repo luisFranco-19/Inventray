@@ -100,7 +100,7 @@ function TrendSegment({ item, maxVal, minVal, range, chartHeight, c, isLast }: {
 
   return (
     <View style={s.segmentContainer}>
-      <View style={[s.barTrack, { height: chartHeight }]}>
+      <View style={[s.barTrack, { height: chartHeight, backgroundColor: c.surfaceAlt }]}>
         
         {/* Área de Ingresos */}
         <Animated.View style={[s.areaFill, { height: heightAnim, zIndex: 1 }]}>
@@ -139,7 +139,7 @@ const s = StyleSheet.create({
   scrollContent: { paddingHorizontal: 20, paddingBottom: 10 },
   chartArea: { flexDirection: 'row', alignItems: 'flex-end', height: 260 },
   segmentContainer: { width: 34, alignItems: 'center', marginHorizontal: 2 },
-  barTrack: { width: 14, backgroundColor: 'rgba(128,128,128,0.05)', borderRadius: 7, justifyContent: 'flex-end', overflow: 'hidden' },
+  barTrack: { width: 14, borderRadius: 7, justifyContent: 'flex-end', overflow: 'hidden' },
   areaFill: { 
     width: '100%', 
     borderRadius: 7, 

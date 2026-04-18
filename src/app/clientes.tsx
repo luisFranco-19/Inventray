@@ -141,6 +141,14 @@ export default function Clientes() {
   };
 
   const eliminarCliente = (cliente: Cliente) => {
+    if (Number(cliente.saldoPendiente) > 0) {
+      Alert.alert(
+        'Acceso Denegado', 
+        `No puedes eliminar a este contacto porque tiene una deuda pendiente de $${Number(cliente.saldoPendiente).toFixed(0)}. Primero debes liquidar la deuda.`,
+        [{ text: 'Entendido' }]
+      );
+      return;
+    }
     setModalDetalle(false); 
     
     const ejecutarEliminar = async () => {

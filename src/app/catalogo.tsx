@@ -18,7 +18,7 @@ export default function CatalogoVirtual() {
   const router = useRouter();
   const [datos, setDatos] = useState<Variante[]>([]);
   const [generando, setGenerando] = useState(false);
-  const { isTablet, contentPadding } = useResponsive();
+  const { isTablet, contentPadding, numColumns, getFontSize } = useResponsive();
 
   const loadData = useCallback(async () => {
     const vars = await obtenerVariantes();
@@ -150,7 +150,7 @@ export default function CatalogoVirtual() {
              <MaterialCommunityIcons name="arrow-left" size={24} color={c.text} />
           </TouchableOpacity>
           <View style={{ flex: 1, paddingLeft: 12 }}>
-             <Text style={[st.headerTitulo, { color: c.text }]}>Catálogo Virtual</Text>
+             <Text style={[st.headerTitulo, { color: c.text, fontSize: getFontSize(21) }]}>Catálogo Virtual</Text>
              <View style={{flexDirection: 'row', alignItems: 'center', gap: 6}}>
                 <Animated.View style={{width: 7, height: 7, borderRadius: 4, backgroundColor: '#4CAF50', transform: [{ scale: pulseAnim }]}} />
                 <Text style={{fontSize: 10, color: c.textTer, fontWeight: '700', letterSpacing: 0.5}}>EN VIVO</Text>
@@ -168,20 +168,20 @@ export default function CatalogoVirtual() {
         <FlatList
           data={datos}
           keyExtractor={item => item.id.toString()}
-          key={isTablet ? 'grid' : 'list'}
-          numColumns={isTablet ? 3 : 2}
+          key={numColumns.toString()}
+          numColumns={numColumns}
           contentContainerStyle={{ paddingHorizontal: contentPadding, paddingBottom: 40, paddingTop: 16 }}
           columnWrapperStyle={{ gap: 16, marginBottom: 16 }}
           ListHeaderComponent={
             <View style={{ marginBottom: 20, alignItems: 'center' }}>
-              <Text style={{ fontSize: 16, color: c.textSec, textAlign: 'center' }}>
+              <Text style={{ fontSize: getFontSize(16), color: c.textSec, textAlign: 'center' }}>
                 Vista previa de tu catálogo. Usa el botón superior derecho para exportarlo y compartirlo con tus clientes.
               </Text>
             </View>
           }
           ListEmptyComponent={
             <View style={{ padding: 40, alignItems: 'center' }}>
-               <Text style={{color: c.textTer}}>No hay productos en tu inventario para mostrar en el catálogo.</Text>
+               <Text style={{color: c.textTer, fontSize: getFontSize(14)}}>No hay productos en tu inventario para mostrar en el catálogo.</Text>
             </View>
           }
           renderItem={({ item }) => (
@@ -193,9 +193,9 @@ export default function CatalogoVirtual() {
                   <MaterialCommunityIcons name="package-variant" size={40} color={c.textTer} />
                 </View>
               )}
-              <Text style={[st.cardTitle, { color: c.text }]} numberOfLines={2}>{item.productoNombre}</Text>
-              <Text style={[st.cardMeta, { color: c.textTer }]}>{item.talla} • {item.color}</Text>
-              <Text style={[st.cardPrice, { color: '#10B981' }]}>${item.precio.toLocaleString('es-MX', {minimumFractionDigits: 2})}</Text>
+              <Text style={[st.cardTitle, { color: c.text, fontSize: getFontSize(14) }]} numberOfLines={2}>{item.productoNombre}</Text>
+              <Text style={[st.cardMeta, { color: c.textTer, fontSize: getFontSize(11) }]}>{item.talla} • {item.color}</Text>
+              <Text style={[st.cardPrice, { color: '#10B981', fontSize: getFontSize(18) }]}>${item.precio.toLocaleString('es-MX', {minimumFractionDigits: 2})}</Text>
             </View>
           )}
         />
@@ -209,7 +209,7 @@ const st = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', paddingTop: 10, paddingBottom: 16 },
   btnAvatar: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
   iconBtn: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
-  headerTitulo: { fontSize: sizes.fontXl, fontWeight: '700' },
+  headerTitulo: { fontWeight: '700' },
   
   card: { flex: 1, borderRadius: sizes.radiusLg, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(0,0,0,0.05)', elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4 },
   cardImage: { width: 100, height: 100, borderRadius: sizes.radiusMd, marginBottom: 12 },

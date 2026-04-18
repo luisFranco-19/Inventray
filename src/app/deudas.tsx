@@ -182,10 +182,10 @@ export default function Deudas() {
           </View>
         </View>
         <TouchableOpacity 
-          style={[s.btnHelp, { backgroundColor: c.surfaceAlt }]} 
+          style={[s.btnHelp, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#F1F5F9' }]} 
           onPress={() => setMostrarGuia(true)}
         >
-          <MaterialCommunityIcons name="information-outline" size={24} color={c.info} />
+          <MaterialCommunityIcons name="information-outline" size={24} color="#60A5FA" />
         </TouchableOpacity>
       </View>
 

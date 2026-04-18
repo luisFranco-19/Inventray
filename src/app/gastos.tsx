@@ -165,10 +165,10 @@ export default function Gastos() {
           </View>
         </View>
         <TouchableOpacity 
-          style={[s.btnHelp, { backgroundColor: c.surfaceAlt, marginRight: 10 }]} 
+          style={[s.btnHelp, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#F1F5F9', marginRight: 10 }]} 
           onPress={() => setMostrarGuia(true)}
         >
-          <MaterialCommunityIcons name="information-outline" size={24} color={c.info} />
+          <MaterialCommunityIcons name="information-outline" size={24} color="#60A5FA" />
         </TouchableOpacity>
         <TouchableOpacity style={[s.btnAdd, { backgroundColor: c.accent }]} onPress={() => setModalVisible(true)}>
           <MaterialCommunityIcons name="plus" size={24} color="#fff" />

@@ -1,3 +1,4 @@
+// Test edit
 import React, { useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, StyleSheet,
@@ -261,7 +262,7 @@ export default function Dashboard() {
           </View>
           
           <TouchableOpacity style={[s.metaBadge, { backgroundColor: c.surfaceAlt }]} activeOpacity={1}>
-            <MaterialCommunityIcons name="target" size={18} color={c.accent} />
+            <MaterialCommunityIcons name="target" size={18} color="#0f0ff0" />
             <Text style={[s.metaBadgeText, { color: c.textSec, marginLeft: 6 }]}> ${META_DIA.toLocaleString()} meta {periodo === 'hoy' ? 'diaria' : periodo === 'mes' ? 'del mes' : 'semanal'}</Text>
             <Text style={{color: c.textSec, marginLeft: 6}}>{pctMeta.toFixed(0)}%</Text>
           </TouchableOpacity>
@@ -433,13 +434,13 @@ export default function Dashboard() {
              {/* Cards medianas: Promedio e Inventario */}
              <BentoCard delay={200} style={{ width: (screenWidth - contentPadding * 2 - 12) / 2 }}>
                <TouchableOpacity 
-                  style={[s.bentoCardMedium, { backgroundColor: c.softBlue }]}
+                  style={[s.bentoCardMedium, { backgroundColor: c.softBlue, borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.05)' : 'transparent' }]}
                   onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
                   activeOpacity={0.9}
                >
-                  <MaterialCommunityIcons name="star" size={26} color={c.accent} />
+                  <MaterialCommunityIcons name="star" size={26} color="#0f0ff0" />
                   <View>
-                    <Text style={[s.bentoValueSmall, { color: c.text }]}>${ticketProm.toFixed(2)}</Text>
+                    <Text style={[s.bentoValueSmall, { color: c.text }]}>${ticketProm.toFixed(1)}</Text>
                     <Text style={[s.bentoLabelSmall, { color: c.textSec }]}>PROMEDIO</Text>
                   </View>
                </TouchableOpacity>
@@ -447,11 +448,11 @@ export default function Dashboard() {
 
              <BentoCard delay={300} style={{ width: (screenWidth - contentPadding * 2 - 12) / 2 }}>
                <TouchableOpacity 
-                  style={[s.bentoCardMedium, { backgroundColor: c.softPurple }]}
+                  style={[s.bentoCardMedium, { backgroundColor: c.softPurple, borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.05)' : 'transparent' }]}
                   onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
                   activeOpacity={0.9}
                >
-                  <MaterialCommunityIcons name="archive" size={26} color={c.accent} />
+                  <MaterialCommunityIcons name="archive-outline" size={26} color="#0f0ff0" />
                   <View>
                     <Text style={[s.bentoValueSmall, { color: c.text }]}>{totalStock}</Text>
                     <Text style={[s.bentoLabelSmall, { color: c.textSec }]}>EN STOCK</Text>
@@ -641,9 +642,9 @@ const s = StyleSheet.create({
 
   // Estilos Bento
   bentoCardLarge: {
-    padding: 24, borderRadius: 36, marginBottom: 12,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.05, shadowRadius: 20, elevation: 4
+    padding: 24, borderRadius: 32, marginBottom: 12,
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)',
+    elevation: 0,
   },
   bentoCardHeader: { flexDirection: 'row', alignItems: 'center', gap: 16 },
   bentoIconCover: { width: 56, height: 56, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },

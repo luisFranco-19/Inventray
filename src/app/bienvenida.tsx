@@ -3,6 +3,7 @@ import {
   View, Text, TouchableOpacity, StyleSheet,
   Animated, StatusBar, Dimensions, TextInput, ScrollView
 } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useTheme } from '../context/ThemeContext';
@@ -16,9 +17,9 @@ import { useResponsive } from '../hooks/useResponsive';
 const { width } = Dimensions.get('window');
 
 const FEATURES = [
-  { icono: '💰', titulo: 'Punto de Venta', desc: 'Cobra, genera tickets y gestiona pagos en segundos.' },
-  { icono: '📦', titulo: 'Inventario Inteligente', desc: 'Controla stock, escanea códigos y recibe alertas.' },
-  { icono: '📊', titulo: 'Reportes y Métricas', desc: 'Visualiza ventas, productos top y rendimiento.' },
+  { icono: 'cash-register', titulo: 'Punto de Venta', desc: 'Cobra, genera tickets y gestiona pagos en segundos.' },
+  { icono: 'package-variant-closed', titulo: 'Inventario Inteligente', desc: 'Controla stock, escanea códigos y recibe alertas.' },
+  { icono: 'chart-bar', titulo: 'Reportes y Métricas', desc: 'Visualiza ventas, productos top y rendimiento.' },
 ];
 
 export default function Bienvenida() {
@@ -69,7 +70,7 @@ export default function Bienvenida() {
         style={[st.btnGuia, { backgroundColor: c.surface }]}
         onPress={() => setMostrarGuia(true)}
       >
-        <Text style={{ fontSize: 22 }}>💡</Text>
+        <MaterialCommunityIcons name="lightbulb-on" size={24} color={isDark ? '#F59E0B' : '#F59E0B'} />
       </TouchableOpacity>
 
       <ScrollView contentContainerStyle={[st.scrollContainer, { paddingHorizontal: contentPadding }]}>
@@ -104,7 +105,7 @@ export default function Bienvenida() {
             {FEATURES.map((f, i) => (
               <View key={i} style={[st.featureRow, { backgroundColor: c.surface }]}>
                 <View style={[st.featureIcon, { backgroundColor: isDark ? c.surfaceAlt : '#F0EEFF' }]}>
-                  <Text style={{ fontSize: 24 }}>{f.icono}</Text>
+                  <MaterialCommunityIcons name={f.icono as any} size={28} color={c.accent} />
                 </View>
                 <View style={st.featureInfo}>
                   <Text style={[st.featureTitle, { color: c.text }]}>{f.titulo}</Text>
@@ -234,7 +235,7 @@ export default function Bienvenida() {
         visible={mostrarGuia}
         onClose={() => setMostrarGuia(false)}
         titulo="Comenzando con Inventray"
-        color="#8E2DE2"
+        color="#10B981"
         pasos={[
           '¿Eres dueño?: Presiona "Crear Nuevo Negocio" para iniciar tu punto de venta desde cero.',
           '¿Eres empleado?: Presiona el botón de "Vincular Llave" e introduce el código secreto que te dé tu jefe.',

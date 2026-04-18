@@ -3,7 +3,7 @@ import { Stack } from 'expo-router';
 import { ThemeProvider, useTheme } from '../context/ThemeContext';
 import { BusinessProvider } from '../context/BusinessContext';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { View, Platform } from 'react-native';
+import { View, Platform, StatusBar } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as NavigationBar from 'expo-navigation-bar';
 
@@ -26,6 +26,11 @@ function RootNavigation() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
+       <StatusBar 
+         barStyle={isDark ? 'light-content' : 'dark-content'} 
+         backgroundColor="transparent" 
+         translucent 
+       />
        <Stack
          screenOptions={{
            headerShown: false,

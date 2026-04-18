@@ -107,7 +107,9 @@ export function GuiaOnboarding() {
         <View style={[StyleSheet.absoluteFill, { backgroundColor: isDark ? 'rgba(0,0,0,0.85)' : 'rgba(255,255,255,0.85)' }]} />
         
         <View style={[st.container, { backgroundColor: c.surface, borderColor: c.border }]}>
-          
+          <TouchableOpacity style={st.closeIcon} onPress={saltar}>
+            <MaterialCommunityIcons name="close" size={24} color={c.textTer} />
+          </TouchableOpacity>
           <Animated.View style={[st.content, { opacity: fadeAnim, transform: [{ translateX: slideAnim }] }]}>
             <View style={[st.iconCircle, { backgroundColor: currentSlide.color + '20' }]}>
                <MaterialCommunityIcons name={currentSlide.icono as any} size={48} color={currentSlide.color} />
@@ -185,7 +187,9 @@ const st = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 20,
     elevation: 10,
+    position: 'relative',
   },
+  closeIcon: { position: 'absolute', top: 16, right: 16, zIndex: 10, padding: 8 },
   content: {
     alignItems: 'center',
     marginBottom: 32,

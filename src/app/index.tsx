@@ -1,405 +1,596 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import {
   View, Text, TouchableOpacity,
-  StatusBar, StyleSheet, Animated as RNAnimated, Dimensions
+  StatusBar, StyleSheet, Animated as RNAnimated, Dimensions, ScrollView
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { useTheme } from '../context/ThemeContext';
 import { useBusiness } from '../context/BusinessContext';
 import { sizes } from '../theme';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useFonts, Poppins_700Bold } from '@expo-google-fonts/poppins';
-import { GuiaOnboarding } from '../components/GuiaOnboarding';
-import { GuiaAyuda } from '../components/GuiaAyuda';
+import { useFonts, Poppins_700Bold, Poppins_600SemiBold, Poppins_400Regular } from '@expo-google-fonts/poppins';
 import { useResponsive } from '../hooks/useResponsive';
 import * as Haptics from 'expo-haptics';
+import { GuiaModulo } from '../components/GuiaModulo';
 
-// ─── Componentes Auxiliares ───────────────────────────────────────────────────
+// --- Database & Logic ---
+import { obtenerVentasPorPeriodo } from '../../database/ventasDB';
+import { obtenerVariantes } from '../../database/variantesDB';
 
-const MenuItemRGB = ({ titulo, subtitulo, icono, colors, onPress, delay, isTablet, index, scrollY, isAdmin }: any) => {
-  const { isDark } = useTheme();
+const { width } = Dimensions.get('window');
+
+// ─── Componentes de UI Premium (Estilo Bento Imagen) ─────────────────────────
+
+const BentoCard = ({ titulo, subtitulo, valor, icono, color, gradient, fullWidth, onPress, delay, isDark }: any) => {
+  const { colors: c } = useTheme();
+  const { gridColumnWidth, getFontSize, moderateScale } = useResponsive();
   const animatedScale = React.useRef(new RNAnimated.Value(0)).current;
-  const pressScale = React.useRef(new RNAnimated.Value(1)).current;
 
   useEffect(() => {
     RNAnimated.spring(animatedScale, {
-      toValue: 1,
-      friction: 8,
-      tension: 40,
-      useNativeDriver: true,
+      toValue: 1, friction: 8, tension: 40, delay, useNativeDriver: true,
     }).start();
   }, []);
 
-  const handlePressIn = () => {
-    RNAnimated.spring(pressScale, { toValue: 0.96, useNativeDriver: true }).start();
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-  };
-  const handlePressOut = () => {
-    RNAnimated.spring(pressScale, { toValue: 1, useNativeDriver: true }).start();
-  };
-
-  const textOnCard = '#FFFFFF';
-  // Ajuste de Alturas para el Stack
-  const ITEM_HEIGHT = 155;
-  const BANNER_HEIGHT = isAdmin ? 280 : 100;
-  const cardOffset = BANNER_HEIGHT + (index * ITEM_HEIGHT);
-
-  // Animación de 'Esconderse' arriba (Stacking) sin Transparencia
-  const parallaxTranslateY = scrollY ? scrollY.interpolate({
-    inputRange: [cardOffset - 400, cardOffset, cardOffset + 500],
-    outputRange: [0, 0, -420], 
-    extrapolate: 'clamp'
-  }) : 0;
-
-  const stackScale = scrollY ? scrollY.interpolate({
-    inputRange: [cardOffset - 200, cardOffset, cardOffset + 400],
-    outputRange: [1, 1, 0.85], 
-    extrapolate: 'clamp'
-  }) : 1;
-
-  const stackOpacity = scrollY ? scrollY.interpolate({
-    inputRange: [cardOffset + 400, cardOffset + 600],
-    outputRange: [1, 0],
-    extrapolate: 'clamp'
-  }) : 1;
-
   return (
-    <RNAnimated.View style={{
-      transform: [
-        { scale: animatedScale },
-        { scale: pressScale },
-        { scale: stackScale },
-        { translateY: parallaxTranslateY }
-      ],
-      opacity: stackOpacity,
-      width: '100%',
-      zIndex: 100 - index,
-      marginBottom: -15, 
-      backgroundColor: isDark ? '#1c1c1c' : '#FFFFFF', 
-      borderRadius: 40,
-      elevation: 8,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.2,
-      shadowRadius: 10,
-    }}>
-      <TouchableOpacity
-        onPress={onPress} activeOpacity={0.9}
-        onPressIn={handlePressIn} onPressOut={handlePressOut}
+    <RNAnimated.View style={[{ transform: [{ scale: animatedScale }], width: fullWidth ? '100%' : gridColumnWidth }]}>
+      <TouchableOpacity 
+        activeOpacity={0.85}
+        onPress={onPress}
         style={[
-          styles.menuItemRGB,
-          { overflow: 'hidden', elevation: 5, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 8 }
+          styles.bentoCard, 
+          { 
+            backgroundColor: isDark ? 'rgba(30, 41, 59, 0.7)' : '#FFFFFF', 
+            shadowColor: color,
+            borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+            borderWidth: 1.5,
+          }
         ]}
       >
-        <LinearGradient
-          colors={colors}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={StyleSheet.absoluteFill}
-        />
-
-        <View style={styles.rgbTopRow}>
-          <View style={[styles.rgbIconContainer, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
-            <MaterialCommunityIcons name={icono} size={isTablet ? 32 : 26} color="#FFFFFF" />
+        <View style={fullWidth ? styles.bentoContentFull : styles.bentoContentHalf}>
+          <View style={{ flex: 1, paddingRight: 8 }}>
+            <Text style={[styles.bentoTitulo, { color: isDark ? '#FFFFFF' : '#1E293B', fontSize: getFontSize(17) }]}>{titulo}</Text>
+            {subtitulo && <Text style={[styles.bentoSubtitulo, { color: isDark ? 'rgba(255,255,255,0.4)' : '#64748B', fontSize: getFontSize(11) }]} numberOfLines={1}>{subtitulo}</Text>}
+            {valor && <Text style={[styles.bentoValor, { color, fontSize: getFontSize(14), fontWeight: '900' }]}>{valor}</Text>}
           </View>
-          <Text style={[styles.rgbSubtitulo, { color: textOnCard, opacity: 0.85 }]}>{subtitulo}</Text>
-        </View>
-
-        <View style={styles.rgbBottomArea}>
-          <Text numberOfLines={2} style={[styles.rgbTitulo, { color: textOnCard, fontFamily: 'Poppins_700Bold' }]}>{titulo}</Text>
-        </View>
-
-        <View style={styles.rgbActionIcon}>
-          <Text style={{ color: textOnCard, fontSize: 18, opacity: 0.5, fontWeight: '900' }}>↗</Text>
+          
+          <View style={[
+            styles.glassIconContainer, 
+            { 
+              backgroundColor: color + (isDark ? '25' : '15'),
+              width: moderateScale(46),
+              height: moderateScale(46),
+              borderRadius: moderateScale(14),
+            }
+          ]}>
+             <MaterialCommunityIcons name={icono} size={moderateScale(24)} color={color} />
+          </View>
         </View>
       </TouchableOpacity>
     </RNAnimated.View>
   );
 };
 
-const HeaderBanner = ({ config, day, colors: c, padding }: any) => {
-  const currentGradiente = config.customGradiente || config.gradiente || ['#4A00E0', '#8E2DE2'];
-  const currentIcono = config.customIcono || config.icono || 'storefront';
+const FakeSparkline = ({ color }: { color: string }) => (
+  <View style={styles.sparklineContainer}>
+    {[0.4, 0.7, 0.5, 0.9, 0.6, 1.0].map((h, i) => (
+      <View key={i} style={[styles.sparkBar, { height: h * 20, backgroundColor: color + '40', borderTopLeftRadius: 4, borderTopRightRadius: 4 }]} />
+    ))}
+  </View>
+);
 
-  return (
-    <View style={{ paddingHorizontal: padding, marginTop: 10, marginBottom: 25 }}>
-      <LinearGradient
-        colors={currentGradiente}
-        start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-        style={styles.headerBannerCard}
-      >
-        <View style={styles.bannerRow}>
-          <View style={{ flex: 1 }}>
-            <View style={styles.bannerBadge}>
-              <Text style={styles.bannerBadgeText}>{config.tipo?.toUpperCase() || 'NEGOCIO'}</Text>
-            </View>
-            <Text style={styles.bannerNombre}>{config.nombre}</Text>
-            <Text style={styles.bannerDia}>{day}</Text>
-
-            <View style={styles.tagStrip}>
-              {config.labelAtributo1 && (
-                <View style={styles.tagItem}>
-                  <Text style={styles.tagText}>{config.labelAtributo1}</Text>
-                </View>
-              )}
-              {config.labelAtributo2 && (
-                <View style={styles.tagItem}>
-                  <Text style={styles.tagText}>{config.labelAtributo2}</Text>
-                </View>
-              )}
-            </View>
-          </View>
-          <View style={styles.bannerIconBox}>
-            {currentIcono.includes('-') || currentIcono.length > 2 ? (
-              <MaterialCommunityIcons name={currentIcono as any} size={40} color="#FFFFFF" />
-            ) : (
-              <MaterialCommunityIcons name="storefront" size={40} color="#FFFFFF" />
-            )}
-          </View>
-        </View>
-      </LinearGradient>
-    </View>
-  );
-};
-
-// ─── Pantalla principal ───────────────────────────────────────────────────────
+// ─── Pantalla Principal ───────────────────────────────────────────────────────
 
 export default function Index() {
   const { colors: c, isDark } = useTheme();
   const { isConfigured, isLoading, config, recargar, userPermisos, isAdmin } = useBusiness();
-  const [listo, setListo] = useState(false);
-  const [error, setError] = useState('');
-  const [mostrarGuia, setMostrarGuia] = useState(false);
-  const { isTablet, contentPadding } = useResponsive();
-
-  const [fontsLoaded] = useFonts({ Poppins_700Bold });
+  const { contentPadding, getFontSize, moderateScale, gap } = useResponsive();
+  const [fontsLoaded] = useFonts({ Poppins_700Bold, Poppins_600SemiBold, Poppins_400Regular });
+  const [metrics, setMetrics] = useState({ sales: '$0.00', tickets: '0', lowStock: '0' });
   const [splashOpacity] = useState(new RNAnimated.Value(1));
   const [mostrarSplash, setMostrarSplash] = useState(true);
+  const [mostrarExtras, setMostrarExtras] = useState(false);
+  const [mostrarGuia, setMostrarGuia] = useState(false);
 
-  const scrollY = React.useRef(new RNAnimated.Value(0)).current;
+  const loadMetrics = async () => {
+    try {
+      if (!isConfigured) return;
+      const vHoy = await obtenerVentasPorPeriodo('hoy');
+      const vars = await obtenerVariantes();
+      const lowStock = vars.filter(x => (x.stock || 0) <= (x.stockMinimo || 0)).length;
+      setMetrics({
+        sales: `$${vHoy.total.toLocaleString('es-MX', { minimumFractionDigits: 2 })}`,
+        tickets: vHoy.tickets.toString(),
+        lowStock: lowStock.toString()
+      });
+    } catch {}
+  };
 
   useEffect(() => {
     const init = async () => {
       try {
         await recargar();
-        setListo(true);
-      } catch (e: any) {
-        setError('No se pudo inicializar la aplicación. Verifique su conexión y llaves.');
-        console.error('[App] Error Server/Auth:', e);
-      }
+      } catch (e) {}
     };
     init();
   }, []);
 
+  useFocusEffect(useCallback(() => { loadMetrics(); }, [isConfigured]));
+
   useEffect(() => {
-    if (listo && fontsLoaded && !isLoading) {
+    if (fontsLoaded && !isLoading) {
       if (!isConfigured) {
         router.replace('/bienvenida');
         return;
       }
-
       setTimeout(() => {
-        RNAnimated.timing(splashOpacity, {
-          toValue: 0,
-          duration: 600,
-          useNativeDriver: true,
-        }).start(() => {
-          setMostrarSplash(false);
-        });
-      }, 1500);
+        RNAnimated.timing(splashOpacity, { toValue: 0, duration: 600, useNativeDriver: true }).start(() => setMostrarSplash(false));
+      }, 1200);
     }
-  }, [listo, fontsLoaded, isLoading, isConfigured]);
+  }, [fontsLoaded, isLoading, isConfigured]);
 
-  const fecha = new Date().toLocaleDateString('es-MX', {
-    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
-  });
-
-  if (error) {
-    return (
-      <SafeAreaView style={[styles.cargando, { backgroundColor: c.bg }]}>
-        <Text style={[styles.errorTexto, { color: c.danger }]}>Error al iniciar</Text>
-        <Text style={[styles.errorSub, { color: c.textTer }]}>{error}</Text>
-      </SafeAreaView>
-    );
-  }
+  if (!isConfigured && !isLoading && !mostrarSplash) return null;
 
   return (
     <View style={{ flex: 1, backgroundColor: c.bg }}>
-      <SafeAreaView style={[styles.root, { backgroundColor: c.bg }]}>
-        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={c.bg} />
-
-        <View style={[styles.appHeader, { paddingHorizontal: contentPadding }]}>
-          <View style={{ flex: 1 }}>
-            <View style={styles.brandingRow}>
-              <LinearGradient
-                colors={['#8E2DE2', '#4A00E0']}
-                start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-                style={styles.brandLogoBox}
-              >
-                <Text style={styles.brandLogoText}>IN</Text>
-              </LinearGradient>
-              <Text style={[styles.brandingText, { color: c.textTer }]}>INVENTRAY</Text>
-            </View>
+      <SafeAreaView style={{ flex: 1 }}>
+        
+        
+        {/* Header Superior Moderno */}
+        <View style={[styles.header, { paddingHorizontal: contentPadding, paddingVertical: moderateScale(20) }]}>
+          <View style={styles.headerLeft}>
+             <LinearGradient colors={['#4F46E5', '#7C3AED']} style={[styles.logoBadge, { width: moderateScale(42), height: moderateScale(42) }]}>
+               <Text style={[styles.logoText, { fontSize: getFontSize(18) }]}>IN</Text>
+             </LinearGradient>
+             <Text style={[styles.headerBrand, { color: c.text, fontFamily: fontsLoaded ? 'Poppins_700Bold' : 'System', fontSize: getFontSize(21) }]}>Inventray</Text>
           </View>
-          <TouchableOpacity
-            style={[styles.btnHelpHeader, { backgroundColor: c.surfaceAlt }]}
-            onPress={() => setMostrarGuia(true)}
-          >
-            <MaterialCommunityIcons name="information-outline" size={24} color={c.info} />
-          </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.settingsBtn, { backgroundColor: c.surfaceAlt, marginRight: 10, width: moderateScale(44), height: moderateScale(44) }]} 
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                setMostrarGuia(true);
+              }}
+            >
+              <MaterialCommunityIcons name="information-outline" size={getFontSize(23)} color="#60A5FA" />
+            </TouchableOpacity>
         </View>
 
-        <RNAnimated.ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 60 }}
-          onScroll={RNAnimated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: true })}
-          scrollEventThrottle={16}
+        <ScrollView 
+          showsVerticalScrollIndicator={false} 
+          contentContainerStyle={{ paddingHorizontal: contentPadding, paddingBottom: 120 }}
         >
-          {isAdmin && <HeaderBanner config={config} day={fecha} colors={c} padding={contentPadding} />}
+          {/* Tarjeta de Negocio Personalizable */}
+          <LinearGradient
+            colors={config.customGradiente || config.gradiente || ['#10B981', '#059669', '#065F46']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.businessCard}
+          >
+            <View style={styles.cardHeader}>
+              <View style={styles.categoryBadge}>
+                <Text style={styles.categoryText}>{config.tipo?.toUpperCase() || 'GENERAL'}</Text>
+              </View>
+            </View>
 
-          <View style={[styles.menu, { paddingHorizontal: contentPadding }]}>
-            <Text style={[styles.menuTitulo, { color: c.textTer }]}>MIS HERRAMIENTAS</Text>
+            <View style={styles.cardMain}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.businessName} numberOfLines={1}>{config.nombre}</Text>
+                <Text style={styles.cardDate}>
+                  {new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                </Text>
 
-            <View style={styles.verticalStack}>
-              {(() => {
-                let availableItems = [
-                  (isAdmin || userPermisos.includes('ventas')) && { titulo: "Punto de Venta", subtitulo: "- Cobros rápidos", icono: "cash-register", colors: ['#8E2DE2', '#4A00E0'], route: '/pos', delay: 100 },
-                  (isAdmin || userPermisos.includes('inventario')) && { titulo: "Control de Stock", subtitulo: "- Inventario Real", icono: "package-variant-closed", colors: ['#059669', '#064E3B'], route: '/stock', delay: 150 },
-                  (isAdmin || userPermisos.includes('catalogo')) && { titulo: "Catálogo", subtitulo: "- Ver productos", icono: "format-list-bulleted-type", colors: ['#2563EB', '#1E3A8A'], route: '/catalogo', delay: 200 },
-                  (isAdmin || userPermisos.includes('dashboard')) && { titulo: "Métricas", subtitulo: "- Análisis", icono: "chart-box-outline", colors: ['#0891B2', '#164E63'], route: '/dashboard', delay: 250 },
-                  (isAdmin || userPermisos.includes('clientes')) && { titulo: "Clientes", subtitulo: "- Base de datos", icono: "account-group", colors: ['#4F46E5', '#312E81'], route: '/clientes', delay: 300 },
-                  (isAdmin || userPermisos.includes('gastos')) && { titulo: "Gastos", subtitulo: "- Flujo de caja", icono: "wallet-outline", colors: ['#E11D48', '#881337'], route: '/gastos', delay: 350 },
-                  (isAdmin || userPermisos.includes('deudas')) && { titulo: "Cuentas x Cobrar", subtitulo: "- Créditos", icono: "account-cash-outline", colors: ['#D97706', '#78350F'], route: '/deudas', delay: 400 },
-                  (isAdmin || userPermisos.includes('reportes')) && { titulo: "Reportes", subtitulo: "- Informes", icono: "file-chart-outline", colors: ['#7C3AED', '#2E1065'], route: '/reportes', delay: 450 },
-                  (isAdmin || userPermisos.includes('ajustes')) && { titulo: "Ajustes", subtitulo: "- Configuración", icono: "cog", colors: ['#4B5563', '#111827'], route: '/ajustes', delay: 500 }
-                ].filter(Boolean);
+                <View style={styles.cardActions}>
+                  <View style={styles.miniBtn}>
+                    <Text style={styles.miniBtnText}>{config.labelAtributo1 || 'Atrib 1'}</Text>
+                  </View>
+                  <View style={styles.miniBtn}>
+                    <Text style={styles.miniBtnText}>{config.labelAtributo2 || 'Atrib 2'}</Text>
+                  </View>
+                </View>
+              </View>
 
-                return (availableItems as any).map((item: any, index: number) => (
-                  <MenuItemRGB
-                    key={item.titulo}
-                    titulo={item.titulo} subtitulo={item.subtitulo}
-                    icono={item.icono} colors={item.colors}
-                    onPress={() => router.push(item.route)}
-                    delay={item.delay} isTablet={isTablet}
-                    index={index} scrollY={scrollY}
-                    isAdmin={isAdmin}
+              <View style={styles.cardIconBox}>
+                <MaterialCommunityIcons name="storefront-outline" size={32} color="#fff" />
+              </View>
+            </View>
+          </LinearGradient>
+
+          {/* Top Metrics Row */}
+          <View style={[styles.topGrid, { gap }]}>
+            <TouchableOpacity 
+              activeOpacity={0.7}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                router.push('/dashboard');
+              }}
+              style={[styles.metricMainCard, { backgroundColor: isDark ? c.surfaceAlt : c.surface, padding: moderateScale(18) }]}
+            >
+               <View style={styles.metricRow}>
+                 <Text style={[styles.metricLabel, { fontSize: getFontSize(10), color: isDark ? 'rgba(255,255,255,0.5)' : '#64748B' }]}>VENTAS DE HOY</Text>
+                 <View style={styles.sparkIcon}><MaterialCommunityIcons name="trending-up" size={getFontSize(14)} color="#10B981" /></View>
+               </View>
+               <Text style={[styles.metricValueLarge, { color: c.text, fontSize: getFontSize(24) }]}>{metrics.sales}</Text>
+               <FakeSparkline color="#10B981" />
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              activeOpacity={0.7}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                router.push('/inventario');
+              }}
+              style={[styles.metricMainCard, { backgroundColor: isDark ? c.surfaceAlt : c.surface, padding: moderateScale(18) }]}
+            >
+               <View style={styles.metricRow}>
+                 <Text style={[styles.metricLabel, { fontSize: getFontSize(10), color: isDark ? 'rgba(255,255,255,0.5)' : '#64748B' }]}>ALERTAS</Text>
+                 <View style={styles.alertCount}><Text style={[styles.alertCountText, { fontSize: getFontSize(10) }]}>{metrics.lowStock}</Text></View>
+               </View>
+               <Text style={[styles.metricValueLarge, { color: c.text, fontSize: getFontSize(24) }]}>{metrics.lowStock} items</Text>
+               <View style={styles.alertIconsRow}>
+                  <View style={[styles.miniAlertIcon, {backgroundColor: isDark ? 'rgba(239, 68, 68, 0.2)' : '#FEE2E2'}]}><MaterialCommunityIcons name="archive-alert-outline" size={getFontSize(14)} color="#EF4444" /></View>
+                  <View style={[styles.miniAlertIcon, {backgroundColor: isDark ? 'rgba(245, 158, 11, 0.2)' : '#FEF3C7'}]}><MaterialCommunityIcons name="alert-outline" size={getFontSize(14)} color="#F59E0B" /></View>
+                  <View style={[styles.moreAlerts, { backgroundColor: c.border }]}><Text style={[styles.moreAlertsText, { color: c.textSec, fontSize: getFontSize(9) }]}>+1</Text></View>
+               </View>
+            </TouchableOpacity>
+          </View>
+
+          {/* Bento Tools Grid */}
+          <View style={[styles.bentoGrid, { gap }]}>
+            {(isAdmin || userPermisos.includes('ventas')) && (
+              <BentoCard 
+                titulo="Punto de Venta" subtitulo="Terminal de cobro" 
+                icono="cash-register" color="#10B981" fullWidth 
+                onPress={() => router.push('/pos')} delay={100} isDark={isDark}
+              />
+            )}
+                        {/* Almacén */}
+            {(isAdmin || userPermisos.includes('inventario')) && (
+              <BentoCard
+                titulo="Almacén"
+                icono="warehouse"
+                color="#8B5CF6"
+                delay={200}
+                isDark={isDark}
+                onPress={() => router.push('/inventario')}
+              />
+            )}
+
+            {/* Catálogo */}
+            {(isAdmin || userPermisos.includes('catalogo')) && (
+              <BentoCard
+                titulo="Catálogo"
+                icono="format-list-bulleted"
+                color="#2563EB"
+                delay={300}
+                isDark={isDark}
+                onPress={() => router.push('/catalogo')}
+              />
+            )}
+
+            {/* Gastos */}
+            {(isAdmin || userPermisos.includes('gastos')) && (
+              <BentoCard 
+                titulo="Gastos" 
+                subtitulo="Registro de egresos y compras"
+                icono="cash-minus" 
+                color="#EF4444" 
+                fullWidth 
+                onPress={() => router.push('/gastos')} 
+                delay={600} 
+                isDark={isDark}
+              />
+            )}
+
+            {/* Proveedores */}
+            {(isAdmin || userPermisos.includes('proveedores')) && (
+              <BentoCard 
+                titulo="Proveedores" 
+                subtitulo="Gestión de contactos"
+                icono="truck-delivery-outline" 
+                color="#0284C7" 
+                fullWidth 
+                onPress={() => router.push('/proveedores')} 
+                delay={700} 
+                isDark={isDark}
+              />
+            )}
+
+            {/* Extras que se muestran al dar click en 'Más herramientas' */}
+            {mostrarExtras && (
+              <>
+                {(isAdmin || userPermisos.includes('deudas')) && (
+                  <BentoCard 
+                    titulo="Deudas"
+                    icono="card-account-phone-outline" 
+                    color="#F59E0B" 
+                    delay={100} 
+                    isDark={isDark}
+                    onPress={() => router.push('/deudas')}
                   />
-                ));
-              })()}
-            </View>
+                )}
+                {(isAdmin || userPermisos.includes('clientes')) && (
+                  <BentoCard 
+                    titulo="Clientes" icono="account-group-outline" 
+                    color="#3B82F6" delay={200} isDark={isDark}
+                    onPress={() => router.push('/clientes')}
+                  />
+                )}
+                {(isAdmin || userPermisos.includes('reportes')) && (
+                  <BentoCard 
+                    titulo="Reportes" 
+                    subtitulo="Análisis de ventas, inventario y rendimiento"
+                    icono="file-chart-outline" 
+                    color="#8B5CF6" 
+                    fullWidth
+                    delay={300} 
+                    isDark={isDark}
+                    onPress={() => router.push('/reportes')}
+                  />
+                )}
+              </>
+            )}
           </View>
 
-          <View style={styles.footer}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: c.info }} />
-              <Text style={[styles.footerTexto, { color: c.textTer }]}>Empower your Business with Pos Pro</Text>
-            </View>
-            <Text style={[styles.footerTextoSmall, { color: c.textTer, marginTop: 4 }]}>Inventray Versión 1.1.0</Text>
-          </View>
+          {/* Action Link Button - Ahora es 'Más herramientas' */}
+          <TouchableOpacity 
+            style={styles.btnLinkTeam} 
+            activeOpacity={0.9}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              setMostrarExtras(!mostrarExtras);
+            }}
+          >
+            <LinearGradient 
+              colors={mostrarExtras ? ['#64748B', '#475569'] : ['#4F46E5', '#6366F1']} 
+              start={{x:0, y:0}} end={{x:1, y:0}} 
+              style={styles.btnLinkArea}
+            >
+              <MaterialCommunityIcons 
+                name={mostrarExtras ? "chevron-up" : "chevron-down"} 
+                size={24} color="#fff" 
+              />
+              <Text style={styles.btnLinkText}>{mostrarExtras ? "Ver menos" : "Más herramientas"}</Text>
+            </LinearGradient>
+          </TouchableOpacity>
 
-        </RNAnimated.ScrollView>
+        </ScrollView>
       </SafeAreaView>
 
+      {/* Splash Screen */}
       {mostrarSplash && (
-        <RNAnimated.View style={[StyleSheet.absoluteFill, { backgroundColor: isDark ? '#080808' : '#F5F5F5', opacity: splashOpacity, justifyContent: 'center', alignItems: 'center', zIndex: 999 }]}>
-          <LinearGradient
-            colors={['#8E2DE2', '#4A00E0']}
-            start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-            style={[styles.splashBlob, { justifyContent: 'center', alignItems: 'center' }]}
-          >
-            <Text style={{ color: '#fff', fontSize: 80, fontWeight: '900', letterSpacing: -5 }}>IN</Text>
-          </LinearGradient>
-          <Text style={[{ fontFamily: fontsLoaded ? 'Poppins_700Bold' : 'System', fontSize: 50, color: isDark ? '#FFFFFF' : '#111111', letterSpacing: -2, marginTop: 20 }]}>Inventray</Text>
-          <Text style={[{ fontSize: 13, color: isDark ? '#666666' : '#999999', marginTop: 5, letterSpacing: 4, textTransform: 'uppercase' }]}>Starting System...</Text>
+        <RNAnimated.View style={[StyleSheet.absoluteFill, { backgroundColor: c.bg, opacity: splashOpacity, justifyContent: 'center', alignItems: 'center', zIndex: 1000 }]}>
+           <LinearGradient colors={['#4F46E5', '#7C3AED']} style={styles.splashIcon}>
+             <Text style={styles.splashLogoText}>IN</Text>
+           </LinearGradient>
+           <Text style={[styles.splashBrand, { color: c.text }]}>Inventray</Text>
         </RNAnimated.View>
       )}
 
-      {!mostrarSplash && <GuiaOnboarding />}
+      {/* Mini Navigation Bar */}
+      <View style={[styles.bottomNav, { bottom: isDark ? 20 : 30 }]}>
+         <View style={[styles.navPill, { backgroundColor: c.surface, shadowColor: isDark ? '#000' : c.textSec, borderColor: c.border }]}>
+            <TouchableOpacity style={[styles.navItemActive, { backgroundColor: c.accent, shadowColor: c.accent }]}>
+               <MaterialCommunityIcons name="home-variant" size={24} color="#fff" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.navItem} onPress={() => router.push('/catalogo')}>
+               <MaterialCommunityIcons name="view-grid-outline" size={24} color="#64748B" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.navItem} onPress={() => router.push('/pos')}>
+               <MaterialCommunityIcons name="plus-circle-outline" size={28} color="#64748B" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.navItem} onPress={() => router.push('/dashboard')}>
+               <MaterialCommunityIcons name="chart-pie" size={24} color="#64748B" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.navItem} onPress={() => router.push('/ajustes')}>
+               <MaterialCommunityIcons name="account-outline" size={24} color="#64748B" />
+            </TouchableOpacity>
+         </View>
+      </View>
 
-      <GuiaAyuda
+      {/* Guía Maestra de la App */}
+      <GuiaModulo 
         visible={mostrarGuia}
         onClose={() => setMostrarGuia(false)}
-        titulo="Panel Principal"
+        nombreModulo="Guía Maestra"
         pasos={[
-          'Consulta el "Dashboard" para ver un resumen de tu desempeño.',
-          'Usa el "Punto de Venta" para realizar cobros rápidos.',
-          'Controla tu "Inventario" para no quedarte sin mercancía.',
-          'Gestiona tus "Ajustes" para cambiar el nombre o icono del negocio.'
+          {
+            titulo: "¡Bienvenido a Inventray!",
+            desc: "Este es tu centro de control. Desde aquí puedes ver el resumen de tu negocio en tiempo real.",
+            icono: "rocket-launch",
+            color: "#10B981"
+          },
+          {
+            titulo: "Ventas Rápidas (POS)",
+            desc: "Usa el Punto de Venta para cobrar de forma ágil. ¡Todo se sincroniza al instante!",
+            icono: "cash-register",
+            color: "#10B981"
+          },
+          {
+            titulo: "Control de Stock",
+            desc: "Organiza tus productos, categorías y proveedores. Activa alertas de inventario bajo.",
+            icono: "package-variant",
+            color: "#10B981"
+          },
+          {
+            titulo: "Clientes y Deudas",
+            desc: "En el menú de 'Más herramientas', puedes gestionar tu base de clientes y las cuentas por cobrar.",
+            icono: "account-group-outline",
+            color: "#8B5CF6"
+          },
+          {
+            titulo: "Control de Gastos",
+            desc: "Registra tus salidas de dinero para tener un balance real de tus utilidades.",
+            icono: "cash-minus",
+            color: "#EF4444"
+          },
+          {
+            titulo: "Reportes Inteligentes",
+            desc: "Analiza tus ganancias, gastos y el rendimiento de tus productos con gráficas detalladas.",
+            icono: "📊",
+            color: "#EC4899"
+          }
         ]}
-        tips={[
-          'Las tarjetas se apilan suavemente mientras navegas.',
-          'Puedes alternar el modo oscuro en el menú de Ajustes.',
-          'Usa el acceso rápido para navegar entre todas las herramientas.'
-        ]}
-        color={c.accent}
       />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  cargando: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16 },
-  errorTexto: { fontSize: 20, fontWeight: '700' },
-  errorSub: { fontSize: 15, textAlign: 'center', paddingHorizontal: 40 },
-  root: { flex: 1 },
-  appHeader: { flexDirection: 'row', alignItems: 'flex-start', paddingTop: 20, paddingBottom: 15 },
-  brandingRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 },
-  brandLogoBox: { width: 32, height: 32, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  brandLogoText: { color: '#fff', fontSize: 13, fontWeight: '900', letterSpacing: -1 },
-  brandingText: { fontSize: 13, fontWeight: '900', letterSpacing: 4, textTransform: 'uppercase' },
-  headerGreeting: { fontSize: sizes.fontXs, fontWeight: '800', letterSpacing: 3, opacity: 0.5 },
-  headerNombre: { fontSize: 28, fontWeight: '900', marginTop: -2 },
-  btnHelpHeader: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
-  fechaActual: { fontSize: sizes.fontMd, fontWeight: '600', opacity: 0.8 },
-  menu: { paddingTop: 10 },
-  menuTitulo: { fontSize: sizes.fontXs, fontWeight: '700', letterSpacing: 1.5, marginBottom: 20 },
-  verticalStack: { gap: 0, marginTop: 10, borderRadius: 40 },
-  menuItemRGB: {
-    height: 140,
-    width: '100%',
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 20 },
+  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  logoBadge: { width: 42, height: 42, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  logoText: { color: '#fff', fontSize: 18, fontWeight: '900', letterSpacing: -1 },
+  headerBrand: { fontSize: 21, fontWeight: '700' },
+  settingsBtn: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
+  
+  topGrid: { flexDirection: 'row', gap: 14, marginBottom: 25, marginTop: 10 },
+  metricMainCard: { flex: 1, padding: 20, borderRadius: 32, elevation: 2, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.04, shadowRadius: 12 },
+  metricRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
+  metricLabel: { fontSize: 10, fontWeight: '800', letterSpacing: 0.5, textTransform: 'uppercase' },
+  metricValueLarge: { fontSize: 24, fontWeight: '900', letterSpacing: -1 },
+  alertCount: { backgroundColor: '#EF4444', height: 20, minWidth: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6 },
+  alertCountText: { color: '#fff', fontSize: 10, fontWeight: '900' },
+  alertIconsRow: { flexDirection: 'row', gap: 6, marginTop: 12, alignItems: 'center' },
+  miniAlertIcon: { width: 28, height: 28, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
+  moreAlerts: { paddingHorizontal: 6, paddingVertical: 4, borderRadius: 8 },
+  moreAlertsText: { fontSize: 9, fontWeight: '800' },
+  sparkIcon: { backgroundColor: '#DCFCE7', padding: 4, borderRadius: 6 },
+  sparklineContainer: { flexDirection: 'row', alignItems: 'flex-end', gap: 4, marginTop: 15, height: 25 },
+  sparkBar: { width: 8 },
+
+  bentoGrid: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 30 },
+  bentoCard: { borderRadius: 24, padding: 16, elevation: 4, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.06, shadowRadius: 15 },
+  bentoContentFull: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  bentoContentHalf: { justifyContent: 'space-between', minHeight: 100 },
+  bentoTitulo: { fontWeight: '800', letterSpacing: -0.5 },
+  bentoSubtitulo: { fontWeight: '500', marginTop: 2 },
+  bentoValor: { fontSize: 13, fontWeight: '700', marginTop: 8 },
+  glassIconContainer: { alignItems: 'center', justifyContent: 'center' },
+
+  // Business Card Styles (Restored & Enhanced)
+  businessCard: {
+    borderRadius: 28,
     padding: 24,
-    borderRadius: 40,
-    justifyContent: 'space-between'
+    marginBottom: 20,
+    marginTop: 10,
+    overflow: 'hidden',
+    minHeight: 160,
+    justifyContent: 'space-between',
+    elevation: 8,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.2,
+    shadowRadius: 15,
   },
-  rgbTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  rgbIconContainer: { width: 48, height: 48, backgroundColor: '#fff', borderRadius: 16, alignItems: 'center', justifyContent: 'center', elevation: 1 },
-  rgbSubtitulo: { fontSize: 13, fontWeight: '600' },
-  rgbBottomArea: { marginTop: 10 },
-  rgbTitulo: { fontSize: 24, fontWeight: '900', letterSpacing: -0.5 },
-  rgbActionIcon: { position: 'absolute', bottom: 20, right: 24 },
-  footer: { marginTop: 40, alignItems: 'center', paddingBottom: 20 },
-  footerTexto: { fontSize: sizes.fontXs, letterSpacing: 0.5, fontWeight: '700', textTransform: 'uppercase' },
-  footerTextoSmall: { fontSize: 10, fontWeight: '500' },
-  splashBlob: { width: 180, height: 180, borderRadius: 50, elevation: 20, shadowColor: '#4A00E0', shadowOpacity: 0.5, shadowRadius: 30 },
-  headerBannerCard: {
-    padding: 24,
-    borderRadius: 32,
-    minHeight: 180,
-    justifyContent: 'center',
+  cardHeader: {
+    flexDirection: 'row',
+    marginBottom: 12,
   },
-  bannerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  bannerBadge: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
+  categoryBadge: {
+    backgroundColor: 'rgba(255,255,255,0.25)',
     paddingHorizontal: 12,
-    paddingVertical: 4,
+    paddingVertical: 5,
     borderRadius: 20,
-    alignSelf: 'flex-start',
-    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
   },
-  bannerBadgeText: { color: '#fff', fontSize: 10, fontWeight: '900', letterSpacing: 1 },
-  bannerNombre: { color: '#fff', fontSize: 32, fontWeight: '900', letterSpacing: -1 },
-  bannerDia: { color: '#fff', fontSize: 15, opacity: 0.8, marginTop: 2, fontWeight: '500' },
-  tagStrip: { flexDirection: 'row', gap: 8, marginTop: 15 },
-  tagItem: {
+  categoryText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1.2,
+  },
+  cardMain: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  businessName: {
+    color: '#fff',
+    fontSize: 26,
+    fontWeight: '900',
+    letterSpacing: -0.5,
+    marginBottom: 4,
+  },
+  cardDate: {
+    color: 'rgba(255,255,255,0.85)',
+    fontSize: 12,
+    fontWeight: '500',
+    marginBottom: 16,
+    textTransform: 'capitalize'
+  },
+  cardActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  miniBtn: {
     backgroundColor: 'rgba(255,255,255,0.15)',
-    paddingHorizontal: 15,
-    paddingVertical: 6,
-    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 10,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
   },
-  tagText: { color: '#fff', fontSize: 12, fontWeight: '700' },
-  bannerIconBox: { width: 80, height: 80, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
+  miniBtnText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: '700',
+  },
+  cardIconBox: {
+    width: 60,
+    height: 60,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.25)',
+  },
+
+  btnLinkTeam: { marginBottom: 30 },
+  btnLinkArea: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 20, borderRadius: 28, gap: 12, elevation: 8, shadowColor: '#10B981', shadowOpacity: 0.3, shadowRadius: 15 },
+  btnLinkText: { color: '#fff', fontSize: 18, fontWeight: '800' },
+  
+  bottomNav: { 
+    position: 'absolute', bottom: 30, left: 16, right: 16, 
+    alignItems: 'center', justifyContent: 'center',
+  },
+  navPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 6,
+    borderRadius: 32,
+    backgroundColor: 'rgba(15, 23, 42, 0.95)',
+    elevation: 20,
+    shadowColor: '#000',
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+  },
+  navItem: {
+    width: 54,
+    height: 54,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 27,
+  },
+  navItemActive: {
+    backgroundColor: '#10B981',
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 10,
+    shadowColor: '#10B981',
+    shadowOpacity: 0.5,
+    shadowRadius: 12,
+  },
+  
+  splashIcon: { width: 140, height: 140, borderRadius: 45, alignItems: 'center', justifyContent: 'center', elevation: 20 },
+  splashLogoText: { color: '#fff', fontSize: 60, fontWeight: '900', letterSpacing: -3 },
+  splashBrand: { fontSize: 36, fontWeight: '700', marginTop: 25, letterSpacing: -1 },
+  sectionTitle: { fontSize: 10, fontWeight: '800', letterSpacing: 1.5, marginBottom: 20, textTransform: 'uppercase', opacity: 0.6 },
 });

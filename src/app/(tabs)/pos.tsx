@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import {
   Platform, View, Text, TextInput, TouchableOpacity, FlatList,
-  StyleSheet, Alert, ScrollView, useWindowDimensions, StatusBar, Modal, Animated as RNAnimated
+  StyleSheet, Alert, ScrollView, useWindowDimensions, StatusBar, Modal, Animated as RNAnimated, Image
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -265,11 +265,11 @@ export default function PuntoDeVenta() {
           </View>
         </View>
         <TouchableOpacity 
-          style={[s.btnScan, { backgroundColor: c.surfaceAlt, marginRight: 8 }]} 
+          style={[s.btnScan, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#F1F5F9', marginRight: 10 }]} 
           onPress={() => setMostrarGuia(true)} 
           activeOpacity={0.8}
         >
-          <MaterialCommunityIcons name="information-outline" size={24} color={c.info} />
+          <MaterialCommunityIcons name="information-outline" size={24} color="#60A5FA" />
         </TouchableOpacity>
         <TouchableOpacity style={[s.btnScan, { backgroundColor: c.accent }]} onPress={abrirEscaner} activeOpacity={0.8}>
           <MaterialCommunityIcons name="camera" size={24} color="#fff" />
@@ -338,9 +338,13 @@ export default function PuntoDeVenta() {
                   }} 
                   activeOpacity={0.85}
                 >
-                  <View style={[s.productoIconWrap, { backgroundColor: c.surfaceAlt, marginBottom: isTablet ? 10 : 0, alignSelf: isTablet ? 'center' : 'auto' }]}>
-                     <MaterialCommunityIcons name="package-variant-closed" size={24} color={c.textSec} />
-                  </View>
+                  {item.imagenUrl ? (
+                    <Image source={{ uri: item.imagenUrl }} style={s.productoImagen} />
+                  ) : (
+                    <View style={[s.productoIconWrap, { backgroundColor: c.surfaceAlt, marginBottom: isTablet ? 10 : 0, alignSelf: isTablet ? 'center' : 'auto' }]}>
+                      <MaterialCommunityIcons name="package-variant-closed" size={24} color={c.textSec} />
+                    </View>
+                  )}
                   <View style={s.productoInfo}>
                     <Text style={[s.productoNombre, { color: c.text, textAlign: isTablet ? 'center' : 'left' }]} numberOfLines={isTablet ? 2 : 1}>{item.productoNombre}</Text>
                     <View style={[s.productoDetalles, { justifyContent: isTablet ? 'center' : 'flex-start' }]}>
@@ -465,7 +469,7 @@ export default function PuntoDeVenta() {
                   <View style={s.descRowArea}>
                      <Text style={[s.descLabelP, { color: c.textSec }]}>% Opcional Descuento</Text>
                      <TextInput 
-                        style={[s.descInputP, { backgroundColor: c.surfaceAlt, color: c.text }]} 
+                        style={[s.descInputP, { backgroundColor: c.surfaceAlt, color: c.text, borderColor: c.border }]} 
                         placeholder="0" placeholderTextColor={c.textTer} keyboardType="numeric" value={descuento} onChangeText={setDescuento} 
                      />
                   </View>
@@ -473,12 +477,12 @@ export default function PuntoDeVenta() {
                   <View style={s.dividerC} />
                   
                   <View style={s.totalsLine}>
-                     <Text style={[s.totalSubLabel, { color: c.textTer }]}>Subtotal</Text>
-                     <Text style={[s.totalSubValue, { color: c.textSec }]}>${subtotal.toFixed(2)}</Text>
+                     <Text style={[s.totalSubLabel, { color: c.textSec }]}>Subtotal</Text>
+                     <Text style={[s.totalSubValue, { color: c.text }]}>${subtotal.toFixed(2)}</Text>
                   </View>
                   {descuentoMonto > 0 && (
                      <View style={s.totalsLine}>
-                        <Text style={[s.totalSubLabel, { color: c.textTer }]}>Descuento ({descuento}%)</Text>
+                        <Text style={[s.totalSubLabel, { color: c.textSec }]}>Descuento ({descuento}%)</Text>
                         <Text style={[s.totalSubValue, { color: c.danger }]}>–${descuentoMonto.toFixed(2)}</Text>
                      </View>
                   )}
@@ -558,7 +562,8 @@ const s = StyleSheet.create({
   searchContainer: { paddingBottom: 16 },
   buscador: { paddingHorizontal: 16, paddingVertical: 14, borderRadius: sizes.radiusLg, borderWidth: 1, fontSize: sizes.fontBase },
   productoModernRow: { padding: 16, borderRadius: sizes.radiusXl },
-  productoIconWrap: { width: 48, height: 48, borderRadius: sizes.radiusLg, alignItems: 'center', justifyContent: 'center', marginRight: 16 },
+  productoImagen: { width: 52, height: 52, borderRadius: sizes.radiusMd, marginRight: 16 },
+  productoIconWrap: { width: 52, height: 52, borderRadius: sizes.radiusMd, alignItems: 'center', justifyContent: 'center', marginRight: 16 },
   productoInfo: { flex: 1, justifyContent: 'center' },
   productoNombre: { fontSize: sizes.fontLg, fontWeight: '600', marginBottom: 6 },
   productoDetalles: { flexDirection: 'row', alignItems: 'center', gap: 8 },
@@ -588,7 +593,7 @@ const s = StyleSheet.create({
   metodBtnTextP: { fontSize: sizes.fontSm, fontWeight: '600' },
   descRowArea: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 },
   descLabelP: { fontSize: sizes.fontMd, fontWeight: '500' },
-  descInputP: { width: 80, paddingVertical: 10, paddingHorizontal: 14, borderRadius: sizes.radiusLg, textAlign: 'right', fontSize: sizes.fontBase, fontWeight: '600' },
+  descInputP: { width: 80, paddingVertical: 10, paddingHorizontal: 14, borderRadius: sizes.radiusLg, textAlign: 'right', fontSize: sizes.fontBase, fontWeight: '600', borderWidth: 1 },
   dividerC: { height: 1, backgroundColor: 'rgba(128,128,128,0.2)', marginBottom: 16 },
   totalsLine: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
   totalSubLabel: { fontSize: sizes.fontMd },

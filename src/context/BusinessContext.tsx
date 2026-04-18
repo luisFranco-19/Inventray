@@ -18,12 +18,12 @@ export interface MetodoPagoOpcion {
 }
 
 export const METODOS_PAGO_OPCIONES: MetodoPagoOpcion[] = [
-  { id: 'efectivo', label: 'Efectivo', icon: '💵' },
-  { id: 'tarjeta', label: 'Tarjeta (Débito/Crédito)', icon: '💳' },
-  { id: 'transferencia', label: 'Transferencia / SPEI', icon: '🏦' },
-  { id: 'qr', label: 'Pago con QR', icon: '📱' },
-  { id: 'sinpe', label: 'SINPE Móvil', icon: '📲' },
-  { id: 'credito', label: 'Crédito / Fiado', icon: '📝' },
+  { id: 'efectivo', label: 'Efectivo', icon: 'cash' },
+  { id: 'tarjeta', label: 'Tarjeta (Débito/Crédito)', icon: 'credit-card' },
+  { id: 'transferencia', label: 'Transferencia / SPEI', icon: 'bank' },
+  { id: 'qr', label: 'Pago con QR', icon: 'qrcode' },
+  { id: 'sinpe', label: 'SINPE Móvil', icon: 'cellphone-arrow-right' },
+  { id: 'credito', label: 'Crédito / Fiado', icon: 'account-cash' },
 ];
 
 
@@ -64,6 +64,16 @@ export interface Dispositivo {
   ultimo_acceso: string;
   activo: boolean;
   permisos: string[];
+}
+
+export interface Proveedor {
+  id: string;
+  negocio_id: string;
+  nombre: string;
+  contacto?: string;
+  telefono?: string;
+  activo: boolean;
+  created_at: string;
 }
 
 export interface TipoNegocioConfig extends Omit<NegocioConfig, 'nombre' | 'subtipoNombre' | 'customIcono' | 'customGradiente' | 'metodosPago'> {
@@ -202,6 +212,12 @@ interface BusinessContextType {
   cambiarRolDispositivo: (id: string, nuevoRol: 'admin' | 'empleado') => Promise<void>;
   actualizarPermisosDispositivo: (id: string, nuevosPermisos: string[]) => Promise<void>;
   eliminarDispositivo: (id: string) => Promise<void>;
+  
+  // Proveedores
+  proveedores: Proveedor[];
+  crearProveedor: (p: Partial<Proveedor>) => Promise<void>;
+  actualizarProveedor: (id: string, updates: Partial<Proveedor>) => Promise<void>;
+  eliminarProveedor: (id: string) => Promise<void>;
 }
 
 const DEFAULT_CONFIG: NegocioConfig = {
@@ -236,6 +252,10 @@ const BusinessContext = createContext<BusinessContextType>({
   cambiarRolDispositivo: async () => {},
   actualizarPermisosDispositivo: async () => {},
   eliminarDispositivo: async () => {},
+  proveedores: [],
+  crearProveedor: async () => {},
+  actualizarProveedor: async () => {},
+  eliminarProveedor: async () => {},
 });
 
 // ─── Provider ─────────────────────────────────────────────────────────────────
@@ -252,6 +272,7 @@ export function BusinessProvider({ children }: { children?: ReactNode }) {
   const [userPermisos, setUserPermisos] = useState<string[]>([]);
   const [hasSeenGuide, setHasSeenGuide] = useState(false); 
   const [config, setConfig] = useState<NegocioConfig>(DEFAULT_CONFIG);
+  const [proveedores, setProveedores] = useState<Proveedor[]>([]);
   const channelRef = useRef<any>(null);
 
   useEffect(() => {
@@ -292,6 +313,19 @@ export function BusinessProvider({ children }: { children?: ReactNode }) {
   useEffect(() => {
     if (!tenantId || !deviceId) return;
 
+    // Función para recargar lista
+    const fetchDispositivos = async () => {
+      const { data } = await supabase
+        .from('dispositivo')
+        .select('*')
+        .eq('tenant_id', tenantId)
+        .order('ultimo_acceso', { ascending: false });
+      if (data) setDispositivos(data);
+    };
+
+    // 1. Cargar lista inicial inmediatamente
+    fetchDispositivos();
+
     channelRef.current = supabase
       .channel(`db-sync-${tenantId}`)
       .on(
@@ -305,16 +339,8 @@ export function BusinessProvider({ children }: { children?: ReactNode }) {
         async (payload) => {
           console.log('[Business] Cambio en dispositivos detectado:', payload.eventType, 'ID:', (payload.old as any)?.id || (payload.new as any)?.id);
 
-          // 1. Recargar lista completa
-          const { data } = await supabase
-            .from('dispositivo')
-            .select('*')
-            .eq('tenant_id', tenantId)
-            .order('ultimo_acceso', { ascending: false });
-          if (data) {
-            console.log('[Business] Lista actualizada de dispositivos:', data.length);
-            setDispositivos(data);
-          }
+          // 1. Recargar lista completa tras cambio
+          fetchDispositivos();
 
           // 2. Si el cambio afecta a ESTE dispositivo, actualizar isAdmin o permisos
           if (payload.new && (payload.new as any).id === deviceId && payload.eventType !== 'DELETE') {
@@ -787,6 +813,74 @@ export function BusinessProvider({ children }: { children?: ReactNode }) {
     }
   };
 
+  // --- Proveedores ---
+    const fetchProveedores = async () => {
+      if (!tenantId) return;
+      const { data } = await supabase
+        .from('proveedor')
+        .select('*')
+        .eq('negocio_id', tenantId)
+        .order('nombre', { ascending: true });
+      if (data) setProveedores(data);
+    };
+
+    useEffect(() => {
+      if (!tenantId) {
+        setProveedores([]);
+        return;
+      }
+  
+      fetchProveedores();
+
+    const channel = supabase
+      .channel('public:proveedor')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'proveedor', filter: `negocio_id=eq.${tenantId}` }, () => {
+        fetchProveedores();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [tenantId]);
+
+  const crearProveedor = async (p: Partial<Proveedor>) => {
+    if (!tenantId) {
+      console.error('[BusinessContext] No tenantId found for crearProveedor');
+      throw new Error('No hay una sesión activa para crear proveedores.');
+    }
+    const { error } = await supabase
+      .from('proveedor')
+      .insert({ ...p, negocio_id: tenantId });
+    if (error) {
+      console.error('[BusinessContext] Error inserting proveedor:', error);
+      throw error;
+    }
+    await fetchProveedores();
+  };
+
+  const actualizarProveedor = async (id: string, updates: Partial<Proveedor>) => {
+    const { error } = await supabase
+      .from('proveedor')
+      .update(updates)
+      .eq('id', id);
+    if (error) throw error;
+    await fetchProveedores();
+  };
+
+  const eliminarProveedor = async (id: string) => {
+    if (!tenantId) throw new Error('No hay sesión activa.');
+    const { error } = await supabase
+      .from('proveedor')
+      .delete()
+      .eq('id', id);
+    if (error) {
+      console.error('[BusinessContext] Error deleting proveedor:', error);
+      throw error;
+    }
+    await fetchProveedores();
+  };
+
   const value = useMemo<BusinessContextType>(
     () => ({
       tenantId,
@@ -811,8 +905,13 @@ export function BusinessProvider({ children }: { children?: ReactNode }) {
       cambiarRolDispositivo,
       actualizarPermisosDispositivo,
       eliminarDispositivo,
+      proveedores,
+      crearProveedor,
+      actualizarProveedor,
+      eliminarProveedor,
+      recargarProveedores: fetchProveedores
     }),
-    [tenantId, isConfigured, isLoading, config, hasSeenGuide, isAdmin, tenantLlave, deviceId, dispositivos, userPermisos, realtimeEnabled]
+    [tenantId, isConfigured, isLoading, config, hasSeenGuide, isAdmin, tenantLlave, deviceId, dispositivos, userPermisos, realtimeEnabled, proveedores]
   );
 
   return (

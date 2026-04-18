@@ -439,10 +439,52 @@ export default function Ajustes() {
          <View style={[st.modalOverlay, isTablet && { justifyContent: 'center', padding: 40 }]}>
             <View style={[st.modalContent, { backgroundColor: c.surface, maxHeight: '85%' }, isTablet && { borderRadius: 24, maxWidth: 600, alignSelf: 'center', width: '100%' }]}>
                <Text style={[st.modalTitle, { color: c.text }]}>Personalizar Negocio</Text>
+
+               {/* Vista Previa de la Tarjeta */}
+               <View style={{ marginBottom: 20 }}>
+                 <Text style={[st.modalLabel, { marginTop: 0, marginBottom: 12 }]}>VISTA PREVIA</Text>
+                 <LinearGradient
+                   colors={editGradiente}
+                   start={{ x: 0, y: 0 }}
+                   end={{ x: 1, y: 1 }}
+                   style={cardSt.businessCard}
+                 >
+                   <View style={cardSt.cardHeader}>
+                     <View style={cardSt.categoryBadge}>
+                       <Text style={cardSt.categoryText}>{biz.tipo?.toUpperCase() || 'GENERAL'}</Text>
+                     </View>
+                   </View>
+                   <View style={cardSt.cardMain}>
+                     <View style={{ flex: 1 }}>
+                       <Text style={cardSt.businessName} numberOfLines={1}>{editNombre}</Text>
+                       <Text style={cardSt.cardDate}>
+                         {new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                       </Text>
+                       <View style={cardSt.cardActions}>
+                         <View style={cardSt.miniBtn}>
+                           <Text style={cardSt.miniBtnText}>{editAtributo1 || 'Atrib 1'}</Text>
+                         </View>
+                         <View style={cardSt.miniBtn}>
+                           <Text style={cardSt.miniBtnText}>{editAtributo2 || 'Atrib 2'}</Text>
+                         </View>
+                       </View>
+                     </View>
+                     <View style={cardSt.cardIconBox}>
+                       <MaterialCommunityIcons name="storefront-outline" size={32} color="#fff" />
+                     </View>
+                   </View>
+                 </LinearGradient>
+               </View>
                
                <ScrollView showsVerticalScrollIndicator={false}>
-                 <Text style={st.modalLabel}>Nombre</Text>
-                 <TextInput style={[st.modalInput, { backgroundColor: c.surfaceAlt, color: c.text }]} value={editNombre} onChangeText={setEditNombre} />
+                 <Text style={st.modalLabel}>Nombre del Negocio</Text>
+                 <TextInput 
+                   style={[st.modalInput, { backgroundColor: c.surfaceAlt, color: c.text }]} 
+                   value={editNombre} 
+                   onChangeText={setEditNombre} 
+                   placeholder="Ej: Cano Mi Tienda"
+                   placeholderTextColor={c.textTer}
+                 />
                  
                  <Text style={st.modalLabel}>Color del Negocio</Text>
                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 16 }}>
@@ -527,14 +569,12 @@ export default function Ajustes() {
          </View>
       </Modal>
 
-      {/* Otros Modales omitidos por brevedad pero asumiendo consistencia */}
-      
       <Modal visible={modalPermisos} animationType="slide" transparent>
         <View style={[st.modalOverlay, isTablet && { justifyContent: 'center', padding: 40 }]}>
           <View style={[st.modalCard, { backgroundColor: c.surface }, isTablet && { maxWidth: 500, alignSelf: 'center', width: '100%' }]}>
             <Text style={[st.modalTitle, { color: c.text }]}>Permisos: {dispSeleccionado?.nombre}</Text>
             <ScrollView style={{ maxHeight: 400 }}>
-              {['ventas', 'inventario', 'catalogo', 'dashboard', 'clientes', 'gastos', 'deudas', 'reportes', 'ajustes'].map(p => (
+              {['ventas', 'inventario', 'catalogo', 'dashboard', 'clientes', 'gastos', 'deudas', 'reportes', 'proveedores', 'ajustes'].map(p => (
                 <TouchableOpacity key={p} style={[st.permisoRow, { borderColor: c.border }]} onPress={() => togglePermiso(p)}>
                   <Text style={[st.permisoLabel, { color: c.text }]}>
                     <MaterialCommunityIcons 
@@ -545,6 +585,7 @@ export default function Ajustes() {
                             p === 'gastos' ? 'chart-line-variant' :
                             p === 'deudas' ? 'handshake' :
                             p === 'clientes' ? 'account-group' : 
+                            p === 'proveedores' ? 'truck-delivery' :
                             p === 'ajustes' ? 'cog' : 'chart-line'} 
                       size={18} 
                       color={c.textSec} 
@@ -556,6 +597,7 @@ export default function Ajustes() {
                      p === 'gastos' ? 'Gastos' :
                      p === 'deudas' ? 'Cuentas x Cobrar' :
                      p === 'clientes' ? 'Clientes' : 
+                     p === 'proveedores' ? 'Proveedores' :
                      p === 'ajustes' ? 'Ajustes y Configuración' : 'Reportes'}
                   </Text>
                   <View style={[st.checkbox, { backgroundColor: permisosEdit.includes(p) ? c.accent : c.surfaceAlt }]}>
@@ -662,7 +704,7 @@ const st = StyleSheet.create({
   llaveCodigo: { fontSize: 18, fontWeight: '800' },
   btnCopiarChico: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 10 },
   deviceRow: { flexDirection: 'row', alignItems: 'center', padding: 16 },
-  deviceIconWrap: { width: 40, height: 40, borderRadius: 10, backgroundColor: '#f0f0f010', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+  deviceIconWrap: { width: 40, height: 40, borderRadius: 10, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
   deviceInfo: { flex: 1 },
   deviceName: { fontSize: 15, fontWeight: '700' },
   roleBadge: { marginTop: 4 },
@@ -675,4 +717,70 @@ const st = StyleSheet.create({
   actionItemText: { fontSize: 16, fontWeight: '600' },
   btnCloseSheet: { marginTop: 10, padding: 16, alignItems: 'center' },
   btnCloseSheetText: { fontWeight: '700', color: '#888' },
+});
+
+const cardSt = StyleSheet.create({
+  businessCard: {
+    borderRadius: 24,
+    padding: 20,
+    overflow: 'hidden',
+    height: 180,
+    justifyContent: 'space-between',
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    marginBottom: 8,
+  },
+  categoryBadge: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 20,
+  },
+  categoryText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1,
+  },
+  cardMain: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+  },
+  businessName: {
+    color: '#fff',
+    fontSize: 28,
+    fontWeight: '800',
+    marginBottom: 4,
+  },
+  cardDate: {
+    color: 'rgba(255,255,255,0.7)',
+    fontSize: 13,
+    marginBottom: 16,
+  },
+  cardActions: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  miniBtn: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  miniBtnText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  cardIconBox: {
+    width: 64,
+    height: 64,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+  },
 });
